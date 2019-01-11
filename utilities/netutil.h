@@ -15,11 +15,18 @@
 #define SOCKET_TYPE SOCK_STREAM
 #define PROTOCOL IPPROTO_TCP
 
+struct client
+{
+        int fd;
+        struct sockaddr_in *clientaddr;
+
+}
+
 struct sockaddr_in* getserversockAddr()
 {
         struct sockaddr_in *addr = (struct sockaddr_in *) calloc(1, sizeof(struct sockaddr_in));
         addr->sin_family = SOCKET_FAMILY;
-        addr->sin_port = PORT;
+        addr->sin_port = htons(PORT);
         addr->sin_addr.s_addr = inet_addr(SERVER_IP);
 
         return addr;
@@ -65,4 +72,35 @@ int listenforconnections(int fd)
         }
 
         return result;
+}
+
+int preparefds(int serverfd, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds, int *client)
+{
+        FD_ZERO(read_fds);
+        FD_ZERO(write_fds);
+        FD_ZERO(except_fds);
+
+        FD_SET(serverfd, read_fds);
+        FD_SET(serverfd, write_fds);
+        FD_SET(STDIN_FILENO, exceptfds);
+
+        int i, maxfd = serverfd, tempfd;
+
+        for(i=0; i<CLIENT_MAX; i++)
+        {
+                tempfd = client[i];
+
+                if(tempfd > 0)
+                {
+                        FD_SET(tempfd, read_fds);
+                        FD_SET(tempfd, write_fds);
+                }
+
+                if(tempfd > maxfd)
+                {
+                        maxfd = tempfd;
+                }
+        }
+
+        return maxfd + 1;
 }
