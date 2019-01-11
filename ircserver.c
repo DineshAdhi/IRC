@@ -8,10 +8,11 @@
 int main()
 {
         struct sockaddr_in *addr = getserversockAddr();
-        int sockfd = createSocket();
+        int serverfd = createSocket();
+        fd_set read_fds, write_fds; 
         
-        bindsocket(sockfd, *addr);
-        
-        printf("[IRCSERVER][LISTEING TO - %s][PORT - %d]", SERVER_IP, PORT); 
-        
+        bindsocket(serverfd, *addr); 
+        listenforconnections(serverfd);
+
+        printf("[IRCSERVER][LISTEING TO - %s][PORT - %d]", SERVER_IP, PORT);
 }

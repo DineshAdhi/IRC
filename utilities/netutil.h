@@ -9,6 +9,8 @@
 #define PORT 4321
 #define SERVER_IP "0.0.0.0"
 #define CLIENT_MAX 100000
+#define MAX_CLIENT_BACKLOG 1000
+
 #define SOCKET_FAMILY AF_INET
 #define SOCKET_TYPE SOCK_STREAM
 #define PROTOCOL IPPROTO_TCP
@@ -46,6 +48,19 @@ int bindsocket(int fd, struct sockaddr_in address_in)
         if(result < 0)
         {
                 perror("bind()");
+                exit(1);
+        }
+
+        return result;
+}
+
+int listenforconnections(int fd)
+{
+        int result = listen(fd, MAX_CLIENT_BACKLOG);
+
+        if(result < 0)
+        {
+                perror("listen()");
                 exit(1);
         }
 
