@@ -4,6 +4,7 @@
 #include<sys/socket.h>
 #include<arpa/inet.h>
 #include<sys/time.h>
+#include<unistd.h>
 
 #include"utilities/netutil.h"
 
@@ -12,22 +13,41 @@ int main()
         struct sockaddr_in *addr = getserversockAddr();
         int serverfd = createSocket();
         int maxfd = serverfd;
-        fd_set read_fds, write_fds; 
+        int client[CLIENT_MAX];
+        fd_set read_fds, write_fds, except_fds;
         
         bindsocket(serverfd, *addr); 
         listenforconnections(serverfd);
 
         printf("[IRCSERVER][LISTEING TO - %s][PORT - %d]", SERVER_IP, PORT);
 
+
         while(TRUE)
         {
-                maxfd = preparefds(serverfd, &read_fds, &write_fds, &except_fds client);
+    
+                maxfd = preparefds(serverfd, &read_fds, &write_fds, &except_fds, client);
 
-                int activity = select(maxfd, &read_fds, &write_fds, &excepfds, NULL);
+                int activity = select(maxfd + 1, &read_fds, &write_fds, &except_fds, NULL);
 
                 switch(activity)
                 {
-                        
+                       case -1:
+                           perror("select()");
+                           break;
+                       
+                       case 0:
+                            perror("select()");
+                            break;
+
+                        default:
+
+                            if(FD_ISSET(STDIN_FILENO, &read_fds))
+                            {
+                                   char *buffer = (char *) calloc(1000, sizeof(char));
+                                   int bytes = read(STDIN_FILENO, buffer, sizeof(buffer));
+                                   
+                                   printf("STDIN  : %s", buffer);
+                            }
                 }
         }
 }

@@ -3,6 +3,7 @@
 #include <arpa/inet.h>    //close  
 #include <sys/types.h>  
 #include <sys/socket.h>  
+#include<unistd.h>
 
 #define TRUE 1
 #define FALSE 0
@@ -15,12 +16,6 @@
 #define SOCKET_TYPE SOCK_STREAM
 #define PROTOCOL IPPROTO_TCP
 
-struct client
-{
-        int fd;
-        struct sockaddr_in *clientaddr;
-
-}
 
 struct sockaddr_in* getserversockAddr()
 {
@@ -82,7 +77,9 @@ int preparefds(int serverfd, fd_set *read_fds, fd_set *write_fds, fd_set *except
 
         FD_SET(serverfd, read_fds);
         FD_SET(serverfd, write_fds);
-        FD_SET(STDIN_FILENO, exceptfds);
+        FD_SET(STDIN_FILENO, read_fds);
+
+        client = (int *) calloc(CLIENT_MAX, sizeof(int));
 
         int i, maxfd = serverfd, tempfd;
 
