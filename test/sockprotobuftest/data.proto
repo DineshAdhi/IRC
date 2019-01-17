@@ -1,5 +1,7 @@
+syntax="proto3";
+
 message data {
-    required int32 a = 1;
-    required int32 b = 2;
-    required string str = 3;
+    int32 a = 1;
+    int32 b = 2;
+    string str = 3;
 }

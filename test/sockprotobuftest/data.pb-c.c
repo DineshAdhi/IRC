@@ -57,7 +57,7 @@ static const ProtobufCFieldDescriptor data__field_descriptors[3] =
   {
     "a",
     1,
-    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
     offsetof(Data, a),
@@ -69,7 +69,7 @@ static const ProtobufCFieldDescriptor data__field_descriptors[3] =
   {
     "b",
     2,
-    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
     offsetof(Data, b),
@@ -81,12 +81,12 @@ static const ProtobufCFieldDescriptor data__field_descriptors[3] =
   {
     "str",
     3,
-    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_STRING,
     0,   /* quantifier_offset */
     offsetof(Data, str),
     NULL,
-    NULL,
+    &protobuf_c_empty_string,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },

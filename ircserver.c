@@ -1,4 +1,4 @@
-#include<stdio.h>
+../protobuftest/#include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
 #include<sys/socket.h>
@@ -7,6 +7,7 @@
 #include<unistd.h>
 
 #include"utilities/netutil.h"
+#include"utilities/log.c"
 
 int main()
 {
@@ -19,9 +20,8 @@ int main()
         bindsocket(serverfd, *addr); 
         listenforconnections(serverfd);
 
-        printf("[IRCSERVER][LISTEING TO - %s][PORT - %d]", SERVER_IP, PORT);
-
-
+        log_info("[IRCSERVER][LISTEING TO - %s][PORT - %d]", SERVER_IP, PORT);
+       
         while(TRUE)
         {
     
@@ -43,10 +43,10 @@ int main()
 
                             if(FD_ISSET(STDIN_FILENO, &read_fds))
                             {
-                                   char *buffer = (char *) calloc(1000, sizeof(char));
-                                   int bytes = read(STDIN_FILENO, buffer, sizeof(buffer));
+                                   char *buffer = (char *) calloc(MAX_STDIN_INPUT, sizeof(char));
+                                   int bytes = read(STDIN_FILENO, buffer, MAX_STDIN_INPUT);
                                    
-                                   printf("STDIN  : %s", buffer);
+                                   log_info("STDIN  : %s",buffer);
                             }
                 }
         }

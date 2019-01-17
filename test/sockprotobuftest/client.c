@@ -21,7 +21,7 @@ int main()
             printf("Connection success\n");
     }
 
-    uint8_t buffer[1000];
+    uint8_t buffer[50000];
 
     int bytes = read(sockfd, (void *) buffer, sizeof(buffer));
 
@@ -43,4 +43,6 @@ int main()
     }
 
     printf("RECEIVED - A : %d B : %d Str : %s \n\n", d->a, d->b, d->str);
+
+    data__free_unpacked(d, NULL);
 }
