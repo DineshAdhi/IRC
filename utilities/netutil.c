@@ -7,6 +7,7 @@
 #include<string.h>
 
 #include"netutil.h"
+#include"log.h"
 
 struct sockaddr_in* getserversockAddr()
 {
@@ -60,28 +61,41 @@ int listenforconnections(int fd)
         return result;
 }
 
-int preparefds(int serverfd, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds, int *client)
+void initialize_clients(client_model *client)
+{
+        int i;
+
+        for(i=0; i<CLIENT_MAX; i++)
+        {
+                client[i].fd = NO_FD;
+        }        
+}
+
+
+int preparefds(int serverfd, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds, client_model *client)
 {
         FD_ZERO(read_fds);
         FD_ZERO(write_fds);
         FD_ZERO(except_fds);
 
         FD_SET(serverfd, read_fds);
-        //FD_SET(serverfd, write_fds);
         FD_SET(STDIN_FILENO, read_fds);
-
-        client = (int *) calloc(CLIENT_MAX, sizeof(int));
 
         int i, maxfd = serverfd, tempfd;
 
         for(i=0; i<CLIENT_MAX; i++)
         {
-                tempfd = client[i];
+                tempfd = client[i].fd;
+
+                if(tempfd == NO_FD)
+                {
+                        continue;
+                }
 
                 if(tempfd > 0)
                 {
                         FD_SET(tempfd, read_fds);
-                        FD_SET(tempfd, write_fds);
+                        FD_SET(tempfd, except_fds);
                 }
 
                 if(tempfd > maxfd)
