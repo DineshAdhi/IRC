@@ -5,9 +5,9 @@
 #include<sys/time.h>
 #include<unistd.h>
 
-#include"utilities/serverutil.h"
-#include"utilities/serverhandler.h"
-#include"utilities/log.h"
+#include"utilities/server/serverutil.h"
+#include"utilities/server/serverhandler.h"
+#include"utilities/logger/log.h"
 
 int client[CLIENT_MAX];
 
