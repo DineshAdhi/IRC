@@ -8,6 +8,7 @@
 #include "../logger/log.h"
 #include "serverhandler.h"
 #include "serverutil.h"
+#include "../common/commonutil.h"
 #include "../../protobufs/payload.pb-c.h"
 
 int handle_incoming_connection(int serverfd)

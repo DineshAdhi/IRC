@@ -9,10 +9,12 @@
 
 #include"serverutil.h"
 #include"../logger/log.h"
+#include "../common/commonutil.h"
 
 void terminateServer()
 {
         log_info("[IRCSERVER][SIGINT/SIGTSTP RECEIVED][HALTING SERVER]");
+        close(serverfd);
         exit(1);
 }
 
@@ -46,35 +48,6 @@ struct sockaddr_in* getserversockAddr()
         return addr;
 }
 
-int createSocket()
-{
-        int fd = socket(SOCKET_FAMILY, SOCKET_TYPE, PROTOCOL);
-
-        if(fd < 0)
-        {
-                perror("socket()");
-                exit(1);
-        }
-
-        return fd;
-}
-
-int bindsocket(int fd, struct sockaddr_in address_in)
-{
-        socklen_t addr_size = sizeof(address_in);
-        struct sockaddr *addr = (struct sockaddr *) &address_in;
-
-        int result = bind(fd, addr, addr_size);
-        
-        if(result < 0)
-        {
-                perror("bind()");
-                exit(1);
-        }
-
-        return result;
-}
-
 int listenforconnections(int fd)
 {
         int result = listen(fd, MAX_CLIENT_BACKLOG);
@@ -88,7 +61,7 @@ int listenforconnections(int fd)
         return result;
 }
 
-int preparefds(int serverfd, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds, int *client)
+int preparefds_server(int serverfd, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds, int *client)
 {
         FD_ZERO(read_fds);
         FD_ZERO(write_fds);
@@ -118,8 +91,4 @@ int preparefds(int serverfd, fd_set *read_fds, fd_set *write_fds, fd_set *except
         return maxfd + 1;
 }
 
-void extract_client_info(struct sockaddr_in clientaddr, char *ip, int *port)
-{
-        *port = ntohs(clientaddr.sin_port);
-        strcpy(ip, inet_ntoa(clientaddr.sin_addr));
-}
+

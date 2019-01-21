@@ -8,7 +8,7 @@
 #include"utilities/server/serverutil.h"
 #include"utilities/server/serverhandler.h"
 #include"utilities/logger/log.h"
-
+#include"utilities/common/commonutil.h"
 
 int main()
 {
@@ -26,7 +26,7 @@ int main()
         while(TRUE)
         {
     
-                maxfd = preparefds(serverfd, &read_fds, &write_fds, &except_fds, client);
+                maxfd = preparefds_server(serverfd, &read_fds, &write_fds, &except_fds, client);
 
                 int activity = select(maxfd + 1, &read_fds, &write_fds, &except_fds, NULL);
 
@@ -49,7 +49,7 @@ int main()
 
                             if(FD_ISSET(serverfd, &read_fds))
                             {
-                                   int remotefd = handle_incoming_connection(serverfd); 
+                                   int remotefd = handle_incoming_connection(serverfd);
                             }
                 }
         }

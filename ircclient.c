@@ -1,49 +1,53 @@
-#include<stdio.h>
+#include<string.h>
 #include<stdlib.h>
-#include"utilities/server/serverutil.h"
-#include"protobufs/payload.pb-c.h"
+#include<sys/socket.h>
+#include<arpa/inet.h>
+#include<sys/time.h>
+#include<unistd.h>
+
+#include"utilities/client/clientutil.h"
+#include"utilities/client/clienthandler.h"
+#include"utilities/logger/log.h"
+#include"utilities/common/commonutil.h"
 
 int main()
 {
-    int sockfd = createSocket();
-    struct sockaddr_in remoteclient; 
+      initiateIRCClient();
+      struct sockaddr_in *remoteaddr = getremoteserveraddr();
+      clientfd = createSocket();
+      int maxfd = clientfd + 1;
+      fd_set read_fds, write_fds, except_fds;
 
-    remoteclient.sin_family = AF_INET;
-    remoteclient.sin_addr.s_addr = inet_addr("127.0.0.1");
-    remoteclient.sin_port = htons(4321);
+      connect_to_server(clientfd, *remoteaddr);
 
-    if(connect(sockfd, (struct sockaddr *) &remoteclient, sizeof(remoteclient)) != 0) 
-    {
-            printf("connection failed\n");
-    }
-    else
-    {
-            printf("Connection success\n");
-    }
+      while(TRUE)
+      {
+            maxfd = preparefds_client(clientfd, &read_fds, &write_fds, &except_fds);
 
-    uint8_t buffer[50000];
+            int activity = select(maxfd, &read_fds, &write_fds, &except_fds, NULL);
 
-    int bytes = read(sockfd, (void *) buffer, sizeof(buffer));
+            switch(activity)
+            {
+                  case -1:
+                  case 0:
+                     perror("select()");
+                     exit(1);
+                     break;
+                  
+                  default:
 
-    if(bytes < 1 )
-    {
-            perror("read");
-    }
+                     if(FD_ISSET(STDIN_FILENO, &read_fds))
+                     {
+                           handle_stdin_data();
+                     }
 
-    Payload *d;
-
-    printf("BYTES : %d\n", bytes);
-
-    d = payload__unpack(NULL, bytes, buffer);
-
-    if(d == NULL)
-    {
-            printf("NULL");
-            return 0;
-    }
-
-    SERVERHELLO *shello = d->serverhello;
-
-    printf("RECEIVED - A : %s B :%d \n", shello->ip, shello->port);
-
+                     if(FD_ISSET(clientfd, &read_fds))
+                     {
+                           if(read_from_server() < 0)
+                           {
+                                 exit(1);
+                           }
+                     }
+            }
+      }
 }

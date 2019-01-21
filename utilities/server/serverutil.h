@@ -1,5 +1,5 @@
-#ifndef NETUTIL_H
-#define NETUTIL_H
+#ifndef SERVERUTIL_H
+#define SERVERUTIL_H
 #include<stdlib.h>
 #include<stdio.h>  
 #include<arpa/inet.h>
@@ -8,17 +8,9 @@
 #include<unistd.h>
 #include<signal.h>
 
-#define TRUE 1
-#define FALSE 0
-#define PORT 4321
 #define SERVER_IP "0.0.0.0"
-#define CLIENT_MAX 100000
+#define CLIENT_MAX 1000
 #define MAX_CLIENT_BACKLOG 1000
-#define MAX_STDIN_INPUT 1024
-
-#define SOCKET_FAMILY AF_INET
-#define SOCKET_TYPE SOCK_STREAM
-#define PROTOCOL IPPROTO_TCP
 
 int *client;
 int serverfd;
@@ -26,10 +18,9 @@ int serverfd;
 
 struct sockaddr_in* getserversockAddr();
 void initializeIRCServer();
-int createSocket();
-int bindsocket(int fd, struct sockaddr_in address_in);
 int listenforconnections(int fd);
-int preparefds(int serverfd, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds, int *client);
-void extract_client_info(struct sockaddr_in clientaddr, char *ip, int *port);
+int preparefds_server(int serverfd, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds, int *client);
+void terminateServer();
+
 
 #endif
