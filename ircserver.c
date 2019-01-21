@@ -5,16 +5,16 @@
 #include<sys/time.h>
 #include<unistd.h>
 
-#include"utilities/netutil.h"
-#include"utilities/handlers.h"
-#include"utilities/log.h"
-
-int client[CLIENT_MAX];
+#include"utilities/server/serverutil.h"
+#include"utilities/server/serverhandler.h"
+#include"utilities/logger/log.h"
+#include"utilities/common/commonutil.h"
 
 int main()
 {
+        initializeIRCServer();
         struct sockaddr_in *addr = getserversockAddr();
-        int serverfd = createSocket();
+        serverfd = createSocket();
         int maxfd = serverfd;
         fd_set read_fds, write_fds, except_fds;
         
@@ -26,7 +26,7 @@ int main()
         while(TRUE)
         {
     
-                maxfd = preparefds(serverfd, &read_fds, &write_fds, &except_fds, client);
+                maxfd = preparefds_server(serverfd, &read_fds, &write_fds, &except_fds, client);
 
                 int activity = select(maxfd + 1, &read_fds, &write_fds, &except_fds, NULL);
 
@@ -43,16 +43,13 @@ int main()
                         default:
 
                             if(FD_ISSET(STDIN_FILENO, &read_fds))
-                            {
-                                   char *buffer = (char *) calloc(MAX_STDIN_INPUT, sizeof(char));
-                                   int bytes = read(STDIN_FILENO, buffer, MAX_STDIN_INPUT);
-                                   
-                                   log_info("STDIN  : %s",buffer);
+                            {                                  
+                                   handle_data_from_stdin();
                             }
 
                             if(FD_ISSET(serverfd, &read_fds))
                             {
-                                   int remotefd = handle_incoming_connection(serverfd); 
+                                   int remotefd = handle_incoming_connection(serverfd);
                             }
                 }
         }

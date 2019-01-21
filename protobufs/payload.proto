@@ -1,0 +1,18 @@
+syntax="proto3";
+
+enum MessageType {
+    MSG_TYPE_SERVER_HELLO = 0;
+    MSG_TYPE_CLIENT_HELLO = 1;
+    MSG_TYPE_USER_LIST = 3;
+    MSG_TYPE_RELAY_MESSSAGE = 2;
+}
+
+message SERVERHELLO {
+    int32 PORT = 1;
+    string ip = 2;
+}
+
+message Payload {
+    MessageType mtype = 1;
+    SERVERHELLO serverhello = 2;
+}
