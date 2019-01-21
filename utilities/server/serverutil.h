@@ -6,6 +6,7 @@
 #include<sys/types.h>  
 #include<sys/socket.h>  
 #include<unistd.h>
+#include<signal.h>
 
 #define TRUE 1
 #define FALSE 0
@@ -19,8 +20,12 @@
 #define SOCKET_TYPE SOCK_STREAM
 #define PROTOCOL IPPROTO_TCP
 
+int *client;
+int serverfd;
+
 
 struct sockaddr_in* getserversockAddr();
+void initializeIRCServer();
 int createSocket();
 int bindsocket(int fd, struct sockaddr_in address_in);
 int listenforconnections(int fd);

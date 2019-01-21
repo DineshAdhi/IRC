@@ -9,12 +9,12 @@
 #include"utilities/server/serverhandler.h"
 #include"utilities/logger/log.h"
 
-int client[CLIENT_MAX];
 
 int main()
 {
+        initializeIRCServer();
         struct sockaddr_in *addr = getserversockAddr();
-        int serverfd = createSocket();
+        serverfd = createSocket();
         int maxfd = serverfd;
         fd_set read_fds, write_fds, except_fds;
         
@@ -43,10 +43,7 @@ int main()
                         default:
 
                             if(FD_ISSET(STDIN_FILENO, &read_fds))
-                            {
-                                   char *buffer = (char *) calloc(MAX_STDIN_INPUT, sizeof(char));
-                                   int bytes = read(STDIN_FILENO, buffer, MAX_STDIN_INPUT);
-                                   
+                            {                                  
                                    handle_data_from_stdin();
                             }
 

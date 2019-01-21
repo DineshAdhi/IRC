@@ -5,8 +5,36 @@
 #include<sys/socket.h>  
 #include<unistd.h>
 #include<string.h>
+#include<signal.h>
 
 #include"serverutil.h"
+#include"../logger/log.h"
+
+void terminateServer()
+{
+        log_info("[IRCSERVER][SIGINT/SIGTSTP RECEIVED][HALTING SERVER]");
+        exit(1);
+}
+
+void initializeIRCServer()
+{
+        struct sigaction action;
+        action.sa_handler = terminateServer;
+
+        if(sigaction(SIGINT, &action, 0) < 0)
+        {
+                perror("sigaction");
+                log_warn("[SIGACTION EXCEPTION][SIGNT]");
+        }
+
+        if(sigaction(SIGTSTP, &action, 0) < 0)
+        {
+                perror("sigaction");
+                log_warn("[SIGACTION EXCEPTION][SIGTSTP]");
+        } 
+
+        client = (int *) calloc(CLIENT_MAX, sizeof(int));
+}
 
 struct sockaddr_in* getserversockAddr()
 {
@@ -67,10 +95,7 @@ int preparefds(int serverfd, fd_set *read_fds, fd_set *write_fds, fd_set *except
         FD_ZERO(except_fds);
 
         FD_SET(serverfd, read_fds);
-        //FD_SET(serverfd, write_fds);
         FD_SET(STDIN_FILENO, read_fds);
-
-        client = (int *) calloc(CLIENT_MAX, sizeof(int));
 
         int i, maxfd = serverfd, tempfd;
 
