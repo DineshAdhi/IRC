@@ -6,7 +6,7 @@
 #include<unistd.h>
 #include<string.h>
 
-#include"netutil.h"
+#include"serverutil.h"
 
 struct sockaddr_in* getserversockAddr()
 {

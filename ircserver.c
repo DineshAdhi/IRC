@@ -5,8 +5,8 @@
 #include<sys/time.h>
 #include<unistd.h>
 
-#include"utilities/netutil.h"
-#include"utilities/handlers.h"
+#include"utilities/serverutil.h"
+#include"utilities/serverhandler.h"
 #include"utilities/log.h"
 
 int client[CLIENT_MAX];
@@ -47,7 +47,7 @@ int main()
                                    char *buffer = (char *) calloc(MAX_STDIN_INPUT, sizeof(char));
                                    int bytes = read(STDIN_FILENO, buffer, MAX_STDIN_INPUT);
                                    
-                                   log_info("STDIN  : %s",buffer);
+                                   handle_data_from_stdin();
                             }
 
                             if(FD_ISSET(serverfd, &read_fds))

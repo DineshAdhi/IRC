@@ -6,8 +6,8 @@
 #include<string.h>
 
 #include "log.h"
-#include "handlers.h"
-#include "netutil.h"
+#include "serverhandler.h"
+#include "serverutil.h"
 
 int handle_incoming_connection(int serverfd)
 {
@@ -32,4 +32,9 @@ int handle_incoming_connection(int serverfd)
         log_info("[INCOMING CONNECTION][ASSIGNED FD - %d][IP - %s][PORT - %d]", remotefd, clientip, port);
 
         return remotefd;
+}
+
+void handle_data_from_stdin()
+{
+
 }
