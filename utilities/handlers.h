@@ -5,6 +5,5 @@
 #include<unistd.h>
 
 #include "log.h"
-#include "models.h"
 
-int handle_incoming_connection(int serverfd, client_model *remoteclient);
+int handle_incoming_connection(int serverfd);

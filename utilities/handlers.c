@@ -8,9 +8,8 @@
 #include "log.h"
 #include "handlers.h"
 #include "netutil.h"
-#include "models.h"
 
-int handle_incoming_connection(int serverfd, client_model *remoteclient)
+int handle_incoming_connection(int serverfd)
 {
         struct sockaddr_in clientaddr;
         socklen_t clientaddr_size = sizeof(clientaddr);
@@ -29,11 +28,6 @@ int handle_incoming_connection(int serverfd, client_model *remoteclient)
         int port;
 
         extract_client_info(clientaddr, clientip, &port);
-
-        remoteclient->ip = clientip;
-        remoteclient->port = port;
-        remoteclient->sockaddr = clientaddr;
-        remoteclient->fd = remotefd;
 
         log_info("[INCOMING CONNECTION][ASSIGNED FD - %d][IP - %s][PORT - %d]", remotefd, clientip, port);
 
