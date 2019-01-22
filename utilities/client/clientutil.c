@@ -5,6 +5,7 @@
 #include<sys/socket.h>  
 #include<unistd.h>
 #include<signal.h>
+#include<netdb.h>
 
 #include"../common/commonutil.h"
 #include"../logger/log.h"
@@ -37,10 +38,14 @@ void initiateIRCClient()
 
 struct sockaddr_in getremoteserveraddr()
 {
+         struct hostent *host = (struct hostent *) calloc(0, sizeof(struct hostent));
+         host = gethostbyname(REMOTE_SERVER_DOMAIN);
+
          struct sockaddr_in *addr = (struct sockaddr_in *) calloc(1, sizeof(struct sockaddr_in));
          addr->sin_family = SOCKET_FAMILY;
          addr->sin_port = htons(PORT);
-         addr->sin_addr.s_addr = inet_addr(REMOTE_SERVER_IP);
+         //addr->sin_addr.s_addr = inet_addr(REMOTE_SERVER_IP);
+         addr->sin_addr.s_addr = *((int *)host->h_addr_list[0]);
 
          return *addr;
 }

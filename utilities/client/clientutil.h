@@ -6,7 +6,8 @@
 #include<unistd.h>
 #include<signal.h>
 
-#define REMOTE_SERVER_IP "0.0.0.0"
+#define REMOTE_SERVER_IP "127.0.0.1"
+#define REMOTE_SERVER_DOMAIN "localhost"
 #define RECONNECT 1
 #define MAX_CONNECT_RETRY 10
 
