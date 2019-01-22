@@ -7,9 +7,15 @@
 #include<signal.h>
 
 #define REMOTE_SERVER_IP "0.0.0.0"
+#define RECONNECT 1
+#define MAX_CONNECT_RETRY 10
+
 int clientfd;
 
-struct sockaddr_in *getremoteserveraddr();
-void connect_to_server(int clientfd, struct sockaddr_in addr);
+#define initiate_connect_to_server() _connect_to_server(!RECONNECT) 
+#define connect_to_server(reconnect) _connect_to_server(reconnect) 
+
+struct sockaddr_in getremoteserveraddr();
+int _connect_to_server(int reconnect);
 int preparefds_client(int clientfd, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds);
 void initiateIRCClient();
