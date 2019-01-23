@@ -2,9 +2,11 @@
 
 #include"../../utilities/crypto/sha256.h"
 
+
+
 int main()
 {
-    char *name = "Dinesh";
+    char *name = "dinesh";
     char hash[65] = {};
 
     sha256(hash, name);
