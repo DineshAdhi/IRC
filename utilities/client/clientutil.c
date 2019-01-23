@@ -5,6 +5,7 @@
 #include<sys/socket.h>  
 #include<unistd.h>
 #include<signal.h>
+#include<netdb.h>
 
 #include"../common/commonutil.h"
 #include"../logger/log.h"
@@ -12,7 +13,9 @@
 
 void terminateClient()
 {
-
+        log_info("[IRCCLIENT][SIGINT/SIGTSTP RECEIVED][HALTING SERVER]");
+        close(clientfd);
+        exit(1);
 }
 
 void initiateIRCClient()
@@ -33,24 +36,38 @@ void initiateIRCClient()
         }
 }
 
-struct sockaddr_in *getremoteserveraddr()
+struct sockaddr_in getremoteserveraddr()
 {
+         struct hostent *host = (struct hostent *) calloc(0, sizeof(struct hostent));
+         host = gethostbyname(REMOTE_SERVER_DOMAIN);
+
          struct sockaddr_in *addr = (struct sockaddr_in *) calloc(1, sizeof(struct sockaddr_in));
          addr->sin_family = SOCKET_FAMILY;
          addr->sin_port = htons(PORT);
-         addr->sin_addr.s_addr = inet_addr(REMOTE_SERVER_IP);
+         //addr->sin_addr.s_addr = inet_addr(REMOTE_SERVER_IP);
+         addr->sin_addr.s_addr = *((int *)host->h_addr_list[0]);
 
-         return addr;
+         return *addr;
 }
 
-void connect_to_server(int clientfd, struct sockaddr_in addr)
+int _connect_to_server(int reconnect)
 {
+      struct sockaddr_in addr = getremoteserveraddr();
+
       int result = connect(clientfd, (struct sockaddr *)&addr, sizeof(addr));
+      
       if(result < 0)
       {
-            log_fatal("[IRCCLIENT][FATAL][CONNECTION REFUSED]");
-            perror("connect()");
-            exit(1);
+            if(reconnect == !RECONNECT)
+            {
+                  log_fatal("[IRCCLIENT][FATAL][CONNECTION REFUSED]");
+                  perror("connect()");
+                  exit(1);
+            }
+            else
+            {
+                  return FAILURE;
+            }
       }
 
       char serverip[16] = {};
@@ -59,6 +76,8 @@ void connect_to_server(int clientfd, struct sockaddr_in addr)
       extract_client_info(addr, serverip, &port);
 
       log_info("[IRCCLIENT][CONNECTED TO SERVER][REMOTE SERVER IP - %s][PORT - %d]", serverip, port);
+
+      return SUCCESS;
 }
 
 int preparefds_client(int clientfd, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds)

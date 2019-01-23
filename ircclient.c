@@ -13,12 +13,11 @@
 int main()
 {
       initiateIRCClient();
-      struct sockaddr_in *remoteaddr = getremoteserveraddr();
       clientfd = createSocket();
       int maxfd = clientfd + 1;
       fd_set read_fds, write_fds, except_fds;
 
-      connect_to_server(clientfd, *remoteaddr);
+      initiate_connect_to_server();
 
       while(TRUE)
       {
