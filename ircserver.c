@@ -21,7 +21,7 @@ int main()
         bindsocket(serverfd, *addr);
         listenforconnections(serverfd);
 
-        log_info("[IRCSERVER][LISTEING TO - %s][PORT - %d]", SERVER_IP, PORT);
+        log_info("[IRCSERVER][LISTENING TO - %s][PORT - %d]", SERVER_IP, PORT);
        
         while(TRUE)
         {
