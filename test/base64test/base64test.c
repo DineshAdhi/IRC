@@ -4,7 +4,7 @@
 
 int main()
 {
-    char *message = "ads23423ewrfwsadfcasdfasdfasgdsfgsdfgsdfhdtr4ewrdfsszdcsxzcasdffasdf3ewrdfsacxafasdfasdfsdgdsfgdfsdfasdfasereasdfasasdfasdfasdfasdfasdfasdxfsdsh";
+    char *message = "asf";
 
     char *hash = b64encode(message);
 
