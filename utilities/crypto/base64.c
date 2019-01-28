@@ -6,63 +6,68 @@
 
 char lookuptable[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-char *b64encode(char *message)
+char *b64encode(char *data, size_t len)
 {
-    int len = strlen(message), i, j;
-    int hashlen = (len * 4)/3  + (len % 3) + 1;
-    int padding = 0;
-    int k = 0;
+    int i = 0, j = 0;
+    size_t size = 0;
+    unsigned char temp[3];
+    unsigned char buf[4];
+    char *hash = (char *) malloc(1);
 
-    char *hash = (char *) calloc(hashlen, sizeof(char));
-
-    for(i = 0; i<len; i = i+3)
+    while(len--)
     {
-            uint32_t value = 0;
-            int count = 0;
-            int itr = i;
+            temp[i++] = *(data++);
 
-            for(itr = i; itr < len && itr < i+3; itr++)
+            if(i == 3)
             {
-                    value = (value << 8);
-                    value = value | message[itr];
-                    count++;
-            }
-        
+                buf[0] = (temp[0] & 0xFC) >> 2;
+                buf[1] = ((temp[0] & 0x03) << 4) + ((temp[1] & 0xF0) >> 4);
+                buf[2] = ((temp[1] & 0x0F) << 2) + ((temp[2] & 0xC0) >> 6);
+                buf[3] = temp[2] & 0x3F;
+            
+                hash = (char *) realloc(hash, size + 4);
 
-            int no_bits = count * 8;
-            padding = 3 - count;
+                for(i=0; i<4; i++)
+                {
+                        hash[size++] = lookuptable[buf[i]];
+                }
 
-
-            int index = -1;
-
-            while(no_bits != 0)
-            {
-                    if(no_bits >= 6)
-                    {    
-                            int temp = no_bits - 6;
-                            index = (value >> temp) & 0x3F;
-                            no_bits -= 6;
-                    }
-                    else
-                    {
-                            int left = 6 - no_bits;
-
-                            index = (value << left) & 0x3F;
-                            no_bits = 0;
-                    }
-
-                    hash[k++] = lookuptable[index];
+                i = 0;
             }
     }
 
-    for(i=0; i<padding; i++)
+    if(i > 0)
     {
-            hash[k++] = '=';
+            for(j=i; j<3; j++)
+            {
+                temp[j] = '\0';
+            }
+
+            buf[0] = (temp[0] & 0xFC) >> 2;
+            buf[1] = ((temp[0] & 0x03) << 4) + ((temp[1] & 0xF0) >> 4);
+            buf[2] = ((temp[1]) & 0x0F << 2) + ((temp[2] & 0xC0) >> 6);
+            buf[3] = temp[2] & 0x3F;
+
+            for(j=0; j<i+1; j++)
+            {
+                hash = (char *) realloc(hash, size + 1);
+                hash[size++] = lookuptable[buf[j]];
+            }
+
+            while((i++ < 3)) 
+            {
+                    hash = (char *) realloc(hash, size + 1);
+                    hash[size++] = '=';
+            }
     }
+
+
+    hash = (char *) realloc(hash, size + 1);
+    hash[size] = '\0'; 
 
     return hash;
-
 }
+
 
 int getb64int(char a)
 {

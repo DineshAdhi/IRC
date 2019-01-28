@@ -4,9 +4,10 @@
 
 int main()
 {
-    char *message = "asf";
+    char *message = "asdflakjsdflkadflkfasdfasgwerwerwasdfadfasdfdfasdfasdfasfaafasdsdfasdsdferaferfawdfsadfasdsjasdfsddfkladfsdfshdfasdfsdfjfasdfaskasdhfsdfasdfasdkalsdjfalksdhfalsdhfaljasdfasdfasdfasdfasdfsadfasdfasdfasdfsdfsdfksdhflaksdhflkwdhflkdhflwdhflkwdhflkdhfklshfls";
+    size_t size = strlen(message);
 
-    char *hash = b64encode(message);
+    char *hash = b64encode(message, size);
 
     char *result = b64decode(hash);
 
