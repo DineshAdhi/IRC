@@ -11,6 +11,8 @@ int main()
 
     char *result = b64decode(hash);
 
+    printf("%s\n\n%s\n\n", message, result);
+
     if(strcmp(message, result) == 0)
     {
         printf("TEST PASSED");
