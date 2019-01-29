@@ -20,10 +20,10 @@ char *b64encode(char *data, size_t len)
 
             if(i == 3)
             {
-                buf[0] = (temp[0] & 0xFC) >> 2;
-                buf[1] = ((temp[0] & 0x03) << 4) + ((temp[1] & 0xF0) >> 4);
-                buf[2] = ((temp[1] & 0x0F) << 2) + ((temp[2] & 0xC0) >> 6);
-                buf[3] = temp[2] & 0x3F;
+                buf[0] = (temp[0] & 0xfc) >> 2;
+                buf[1] = ((temp[0] & 0x03) << 4) + ((temp[1] & 0xf0) >> 4);
+                buf[2] = ((temp[1] & 0x0f) << 2) + ((temp[2] & 0xc0) >> 6);
+                buf[3] = temp[2] & 0x3f;
             
                 hash = (char *) realloc(hash, size + 4);
 
@@ -43,10 +43,10 @@ char *b64encode(char *data, size_t len)
                 temp[j] = '\0';
             }
 
-            buf[0] = (temp[0] & 0xFC) >> 2;
-            buf[1] = ((temp[0] & 0x03) << 4) + ((temp[1] & 0xF0) >> 4);
-            buf[2] = ((temp[1]) & 0x0F << 2) + ((temp[2] & 0xC0) >> 6);
-            buf[3] = temp[2] & 0x3F;
+            buf[0] = (temp[0] & 0xfc) >> 2;
+            buf[1] = ((temp[0] & 0x03) << 4) + ((temp[1] & 0xf0) >> 4);
+            buf[2] = ((temp[1] & 0x0f) << 2) + ((temp[2] & 0xc0) >> 6);
+            buf[3] = temp[2] & 0x3f;
 
             for(j=0; j<i+1; j++)
             {
@@ -73,7 +73,7 @@ int getb64int(char a)
 {
         int i;
 
-        int n = sizeof(lookuptable)/sizeof(lookuptable[0]);
+        int n = 64;
 
         for(i=0; i<n; i++)
         {
