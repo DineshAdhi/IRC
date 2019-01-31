@@ -27,26 +27,26 @@ void getRoundkey(uint8_t *Rkey, uint8_t *key)
 
             if(i % Nk == 0)
             {
-                uint8_t t = tempa[0];
+                uint8_t u8tmp = tempa[0];
                 tempa[0] = tempa[1];
                 tempa[1] = tempa[2];
                 tempa[2] = tempa[3];
-                tempa[3] = t;
+                tempa[3] = u8tmp;
 
-                tempa[0] = SBoxValue(tempa[0]);
-                tempa[1] = SBoxValue(tempa[1]);
-                tempa[2] = SBoxValue(tempa[2]);
-                tempa[3] = SBoxValue(tempa[3]);
+                tempa[0] = getSBoxValue(tempa[0]);
+                tempa[1] = getSBoxValue(tempa[1]);
+                tempa[2] = getSBoxValue(tempa[2]);
+                tempa[3] = getSBoxValue(tempa[3]);
 
                 tempa[0] = tempa[0] ^ Rcon[i/Nk];
             }
 
             if(i % Nk == 4)
             {
-                tempa[0] = SBoxValue(tempa[0]);
-                tempa[1] = SBoxValue(tempa[1]);
-                tempa[2] = SBoxValue(tempa[2]);
-                tempa[3] = SBoxValue(tempa[3]);
+                tempa[0] = getSBoxValue(tempa[0]);
+                tempa[1] = getSBoxValue(tempa[1]);
+                tempa[2] = getSBoxValue(tempa[2]);
+                tempa[3] = getSBoxValue(tempa[3]);
             }
 
             j = i * 4; k = (i - Nk) * 4;
@@ -57,3 +57,253 @@ void getRoundkey(uint8_t *Rkey, uint8_t *key)
             Rkey[j + 3] = Rkey[k + 3] ^ tempa[3];
       }
 }
+
+static void add_round_key(state_t *s, uint8_t *rkey, int round)
+{
+      int i,j;
+
+      for(i=0; i<4; i++)
+      {
+            for(j=0; j<4; j++)
+            {
+                  (*s)[i][j] ^= rkey[(round * Nb * 4) + (i * Nb) + j];
+            }
+      }
+}
+
+static void subbytes(state_t *s)
+{
+      int i,j;
+
+      for(i=0; i<4; i++)
+      {
+            for(j=0; j<4; j++)
+            {
+                  (*s)[i][j] = getSBoxValue((*s)[i][j]);
+            }
+      }
+}
+
+static void invsubbytes(state_t* state)
+{
+      uint8_t i, j;
+
+      for (i = 0; i < 4; ++i)
+      {
+            for (j = 0; j < 4; ++j)
+            {
+                  (*state)[j][i] = getSBoxInvert((*state)[j][i]);
+            }
+      }
+}
+
+static void shiftrows(state_t *s)
+{
+      uint8_t temp;
+
+      temp = (*s)[0][1];
+      (*s)[0][1] = (*s)[1][1];
+      (*s)[1][1] = (*s)[2][1];
+      (*s)[2][1] = (*s)[3][1];
+      (*s)[3][1] = temp;
+
+      temp = (*s)[0][2];
+      (*s)[0][2] = (*s)[2][2];
+      (*s)[2][2] = temp;
+
+      temp = (*s)[1][2];
+      (*s)[1][2] = (*s)[3][2];
+      (*s)[3][2] = temp;
+
+      temp = (*s)[0][3];
+      (*s)[0][3] = (*s)[3][3];
+      (*s)[3][3] = (*s)[2][3];
+      (*s)[2][3] = (*s)[1][3];
+      (*s)[1][3] = temp;
+}
+
+static void invshiftrows(state_t* s)
+{
+      uint8_t temp;
+
+      temp = (*s)[3][1];
+      (*s)[3][1] = (*s)[2][1];
+      (*s)[2][1] = (*s)[1][1];
+      (*s)[1][1] = (*s)[0][1];
+      (*s)[0][1] = temp;
+
+      temp = (*s)[0][2];
+      (*s)[0][2] = (*s)[2][2];
+      (*s)[2][2] = temp;
+
+      temp = (*s)[1][2];
+      (*s)[1][2] = (*s)[3][2];
+      (*s)[3][2] = temp;
+
+      temp = (*s)[0][3];
+      (*s)[0][3] = (*s)[1][3];
+      (*s)[1][3] = (*s)[2][3];
+      (*s)[2][3] = (*s)[3][3];
+      (*s)[3][3] = temp;
+}
+
+
+static uint8_t xtime(uint8_t x)
+{
+      return ((x<<1) ^ (((x>>7) & 1) * 0x1b));
+}
+
+static uint8_t Multiply(uint8_t x, uint8_t y)
+{
+  return (((y & 1) * x) ^
+       ((y>>1 & 1) * xtime(x)) ^
+       ((y>>2 & 1) * xtime(xtime(x))) ^
+       ((y>>3 & 1) * xtime(xtime(xtime(x)))) ^
+       ((y>>4 & 1) * xtime(xtime(xtime(xtime(x)))))); 
+}
+
+static void mixcolumns(state_t *s)
+{
+      uint8_t i;
+      uint8_t Tmp, Tm, t;
+      for (i = 0; i < 4; ++i)
+      {  
+                  t   = (*s)[i][0];
+                  Tmp = (*s)[i][0] ^ (*s)[i][1] ^ (*s)[i][2] ^ (*s)[i][3] ;
+                  Tm  = (*s)[i][0] ^ (*s)[i][1] ; Tm = xtime(Tm);  (*s)[i][0] ^= Tm ^ Tmp ;
+                  Tm  = (*s)[i][1] ^ (*s)[i][2] ; Tm = xtime(Tm);  (*s)[i][1] ^= Tm ^ Tmp ;
+                  Tm  = (*s)[i][2] ^ (*s)[i][3] ; Tm = xtime(Tm);  (*s)[i][2] ^= Tm ^ Tmp ;
+                  Tm  = (*s)[i][3] ^ t ;              Tm = xtime(Tm);  (*s)[i][3] ^= Tm ^ Tmp ;
+      }
+}
+
+static void invmixcolumns(state_t* s)
+{
+      int i;
+      uint8_t a, b, c, d;
+
+      for (i = 0; i < 4; ++i)
+      { 
+            a = (*s)[i][0];
+            b = (*s)[i][1];
+            c = (*s)[i][2];
+            d = (*s)[i][3];
+
+            (*s)[i][0] = Multiply(a, 0x0e) ^ Multiply(b, 0x0b) ^ Multiply(c, 0x0d) ^ Multiply(d, 0x09);
+            (*s)[i][1] = Multiply(a, 0x09) ^ Multiply(b, 0x0e) ^ Multiply(c, 0x0b) ^ Multiply(d, 0x0d);
+            (*s)[i][2] = Multiply(a, 0x0d) ^ Multiply(b, 0x09) ^ Multiply(c, 0x0e) ^ Multiply(d, 0x0b);
+            (*s)[i][3] = Multiply(a, 0x0b) ^ Multiply(b, 0x0d) ^ Multiply(c, 0x09) ^ Multiply(d, 0x0e);
+      }
+}
+
+void cipher(state_t *s, uint8_t *rkey)
+{
+      int i,j;
+      int round = 0;
+      add_round_key(s, rkey, 0);
+
+      for(i=1; i<Nr; i++)
+      {
+            subbytes(s);
+            shiftrows(s);
+            mixcolumns(s);
+            add_round_key(s, rkey, i);
+      }
+
+      subbytes(s);
+      shiftrows(s);
+      add_round_key(s, rkey, Nr);
+}
+
+static void decipher(state_t* s,uint8_t* RoundKey)
+{
+      uint8_t round = 0;
+
+      add_round_key(s, RoundKey, Nr); 
+
+      for (round = (Nr - 1); round > 0; --round)
+      {
+            invshiftrows(s);
+            invsubbytes(s);
+            add_round_key(s, RoundKey, round);
+            invmixcolumns(s);
+      }
+      
+      invshiftrows(s);
+      invsubbytes(s);
+      add_round_key(s, RoundKey, 0);
+}
+
+AES_CTX *init_aes356_ctx(uint8_t *key)
+{
+      AES_CTX *ctx = (AES_CTX *) calloc(1, sizeof(AES_CTX));
+      getRoundkey(ctx->rkey, key);
+
+      return ctx;
+}
+
+state_t *copy_to_state(uint8_t *plain, int mark)
+{
+      int i, j;
+      state_t *s = (state_t *)calloc(1, sizeof(state_t));
+
+      for(i=0; i<4; i++)
+      {
+            for(j=0; j<4; j++)
+            {
+                  (*s)[i][j] = plain[mark++];
+            }
+      }
+
+      return s;
+}
+
+void copy_to_buffer(state_t *s, uint8_t *enc, int mark)
+{
+      int i,j;
+
+      for(i=0; i<4; i++)
+      {
+            for(j=0; j<4; j++)
+            {
+                  enc[mark++] = (*s)[i][j];
+            }
+      }
+}
+
+uint8_t* aes256_encrypt(AES_CTX *ctx, uint8_t *plain, size_t length)
+{
+     int  i = 0, j, itr = 0;
+
+     state_t *s = (state_t *) calloc(1, sizeof(state_t));
+     uint8_t *hash = (uint8_t *) calloc(length, sizeof(uint8_t));
+
+     for(i=0; i<length; i=i+AESBLOCKLEN)
+     {
+            s = copy_to_state(plain, i);
+            cipher(s, ctx->rkey);
+            copy_to_buffer(s, hash, i);
+     }
+
+      return hash;
+}
+
+uint8_t* aes256_decrypt(AES_CTX *ctx, uint8_t *hash, size_t length)
+{
+     int  i = 0, j, itr = 0;
+
+     state_t *s = (state_t *) calloc(1, sizeof(state_t));
+     uint8_t *plain = (uint8_t *) calloc(length, sizeof(uint8_t));
+
+
+     for(i=0; i<length; i=i+AESBLOCKLEN)
+     {
+            s = copy_to_state(hash, i);
+            decipher(s, ctx->rkey);
+            copy_to_buffer(s, plain, i);
+     }
+
+     return plain;
+}
+
+
