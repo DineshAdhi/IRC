@@ -3,6 +3,7 @@
 #include<unistd.h>
 
 #include"aes256.h"
+#include"base64.h"
 
 void getRoundkey(uint8_t *Rkey, uint8_t *key)
 {
@@ -269,6 +270,8 @@ void copy_to_buffer(state_t *s, uint8_t *enc, int mark)
                   enc[mark++] = (*s)[i][j];
             }
       }
+
+      enc[mark] = '\0';
 }
 
 uint8_t* aes256_encrypt(AES_CTX *ctx, uint8_t *plain, size_t length)
@@ -276,7 +279,7 @@ uint8_t* aes256_encrypt(AES_CTX *ctx, uint8_t *plain, size_t length)
      int  i = 0, j, itr = 0;
 
      state_t *s = (state_t *) calloc(1, sizeof(state_t));
-     uint8_t *hash = (uint8_t *) calloc(length, sizeof(uint8_t));
+     uint8_t *hash = (uint8_t *) calloc(length, sizeof(char));
 
      for(i=0; i<length; i=i+AESBLOCKLEN)
      {
@@ -285,7 +288,7 @@ uint8_t* aes256_encrypt(AES_CTX *ctx, uint8_t *plain, size_t length)
             copy_to_buffer(s, hash, i);
      }
 
-      return hash;
+     return hash;
 }
 
 uint8_t* aes256_decrypt(AES_CTX *ctx, uint8_t *hash, size_t length)
@@ -294,7 +297,6 @@ uint8_t* aes256_decrypt(AES_CTX *ctx, uint8_t *hash, size_t length)
 
      state_t *s = (state_t *) calloc(1, sizeof(state_t));
      uint8_t *plain = (uint8_t *) calloc(length, sizeof(uint8_t));
-
 
      for(i=0; i<length; i=i+AESBLOCKLEN)
      {
@@ -305,5 +307,68 @@ uint8_t* aes256_decrypt(AES_CTX *ctx, uint8_t *hash, size_t length)
 
      return plain;
 }
+
+AES_WRAPPER* ini_aes256_wrapper(uint8_t *key)
+{      
+      AES_CTX *ctx = init_aes356_ctx(key);
+
+      AES_WRAPPER *w = (AES_WRAPPER *) calloc(1, sizeof(AES_WRAPPER));
+      w->ctx = ctx;
+      w->plain = NULL;
+      w->hash = NULL;
+      w->length = -1;
+
+      return w;
+}
+
+void wrapper_aes256_encrypt(AES_WRAPPER *w)
+{
+      int  i = 0, j, itr = 0;
+
+      state_t *s = (state_t *) calloc(1, sizeof(state_t));
+      w->hash = (uint8_t *) calloc(w->length, sizeof(char));
+
+      for(i=0; i<w->length; i=i+AESBLOCKLEN)
+      {
+            s = copy_to_state(w->plain, i);
+            cipher(s, w->ctx->rkey);
+            copy_to_buffer(s, w->hash, i);
+      }
+
+      #if defined(DO_ENCODING_AFTER_ENCRYPTION) && (DO_ENCODING_AFTER_ENCRYPTION == 1)
+
+            w->base64 = (char *) b64encode(w->hash, w->length);
+
+            w->hex = (char *) calloc(w->length * 2, sizeof(char));
+            
+            for(i=0; i<w->length * 2; i = i + 2)
+            {
+                  sprintf(w->hex + i, "%02X", w->hash[itr++]);
+            }
+            
+      #endif
+
+
+      #if defined(DELETE_PLAIN_AFETER_ENCRYPTION) && (DELETE_PLAIN_AFETER_ENCRYPTION == 1)
+            w->plain = NULL;
+      #endif
+}
+
+void wrapper_aes256_decrypt(AES_WRAPPER *w)
+{
+     int  i = 0, j, itr = 0;
+
+     state_t *s = (state_t *) calloc(1, sizeof(state_t));
+     w->plain = (uint8_t *) calloc(w->length, sizeof(uint8_t));
+
+     for(i=0; i<w->length; i=i+AESBLOCKLEN)
+     {
+            s = copy_to_state(w->hash, i);
+            decipher(s, w->ctx->rkey);
+            copy_to_buffer(s, w->plain, i);
+     }
+}
+
+
 
 

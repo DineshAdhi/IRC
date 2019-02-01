@@ -9,7 +9,8 @@
 
 #define AESROUNDKEYLEN 240 
 #define AESBLOCKLEN 16
-
+#define DELETE_PLAIN_AFETER_ENCRYPTION 1
+#define DO_ENCODING_AFTER_ENCRYPTION 1
 
 static const uint8_t Rcon[11] = { 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36 };
 
@@ -18,6 +19,15 @@ typedef uint8_t state_t[4][4];
 typedef struct {
     uint8_t rkey[AESROUNDKEYLEN];
 }AES_CTX;
+
+typedef struct {
+    AES_CTX *ctx;
+    uint8_t *plain;
+    size_t length;
+    uint8_t *hash;
+    char *hex;
+    char *base64;
+} AES_WRAPPER;
 
 static const uint8_t sbox[256] = {
   //0     1    2      3     4    5     6     7      8    9     A      B    C     D     E     F
@@ -58,5 +68,8 @@ static const uint8_t rsbox[256] = {
   0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d };
 
 AES_CTX *init_aes356_ctx(uint8_t *key);
+AES_WRAPPER* ini_aes256_wrapper(uint8_t *key);
 uint8_t* aes256_encrypt(AES_CTX *ctx, uint8_t *plain, size_t length);
 uint8_t* aes256_decrypt(AES_CTX *ctx, uint8_t *hash, size_t length);
+void wrapper_aes256_encrypt(AES_WRAPPER *w);
+void wrapper_aes256_decrypt(AES_WRAPPER *w);
