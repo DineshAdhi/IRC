@@ -4,12 +4,14 @@
 
 int main()
 {
-    char *message = "asdflakjsdflkadflkfasdfasgwerwerwasdfadfasdfdfasdfasdfasfaafasdsdfasdsdferaferfawdfsadfasdsjasdfsddfkladfsdfshdfasdfsdfjfasdfaskasdhfsdfasdfasdkalsdjfalksdhfalsdhfaljasdfasdfasdfasdfasdfsadfasdfasdfasdfsdfsdfksdhflaksdhflkwdhflkdhflwdhflkwdhflkdhfklshfls";
+    char *message = "scharfes S [ß] [Eszett]";
     size_t size = strlen(message);
 
-    char *hash = b64encode(message, size);
+    char *hash = (char *) b64encode((uint8_t*)message, size);
 
-    char *result = b64decode(hash);
+    printf("%s\n", hash);
+
+    char *result = (char *) b64decode((uint8_t*)hash, strlen(hash));
 
     printf("%s\n\n%s\n\n", message, result);
 

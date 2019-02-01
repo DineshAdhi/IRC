@@ -4,15 +4,15 @@
 
 #include"base64.h"
 
-char lookuptable[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+uint8_t lookuptable[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-char *b64encode(char *data, size_t len)
+uint8_t *b64encode(uint8_t *data, size_t len)
 {
     int i = 0, j = 0;
     size_t size = 0;
-    unsigned char temp[3];
-    unsigned char buf[4];
-    char *hash = (char *) malloc(1);
+    uint8_t temp[3];
+    uint8_t buf[4];
+    uint8_t *hash = (uint8_t*) malloc(1);
 
     while(len--)
     {
@@ -25,7 +25,7 @@ char *b64encode(char *data, size_t len)
                 buf[2] = ((temp[1] & 0x0F) << 2) + ((temp[2] & 0xC0) >> 6);
                 buf[3] = temp[2] & 0x3F;
             
-                hash = (char *) realloc(hash, size + 4);
+                hash = (uint8_t *) realloc(hash, size + 4);
 
                 for(i=0; i<4; i++)
                 {
@@ -50,26 +50,26 @@ char *b64encode(char *data, size_t len)
 
             for(j=0; j<i+1; j++)
             {
-                hash = (char *) realloc(hash, size + 1);
+                hash = (uint8_t *) realloc(hash, size + 1);
                 hash[size++] = lookuptable[buf[j]];
             }
 
             while((i++ < 3)) 
             {
-                    hash = (char *) realloc(hash, size + 1);
+                    hash = (uint8_t *) realloc(hash, size + 1);
                     hash[size++] = '=';
             }
     }
 
 
-    hash = (char *) realloc(hash, size + 1);
+    hash = (uint8_t *) realloc(hash, size + 1);
     hash[size] = '\0'; 
 
     return hash;
 }
 
 
-int getb64int(char a)
+int getb64int(uint8_t a)
 {
         int i;
 
@@ -84,15 +84,13 @@ int getb64int(char a)
         return 0;
 }
 
-char *b64decode(char *hash)
+uint8_t *b64decode(uint8_t *hash, size_t len)
 {
         int i = 0, j = 0;
-        char *plain = (char *) calloc(1, sizeof(char));
+        uint8_t *plain = (uint8_t *) calloc(1, sizeof(uint8_t));
         size_t size = 0;
-        unsigned char temp[4];
-        unsigned char buf[3];
-        
-        size_t len = strlen(hash);
+        uint8_t temp[4];
+        uint8_t buf[3];
 
         while(len--)
         {
@@ -109,7 +107,7 @@ char *b64decode(char *hash)
                         buf[1] = ((temp[1] & 0xf) << 4) + ((temp[2] & 0x3c) >> 2);
                         buf[2] = ((temp[2] & 0x3) << 6) + temp[3];
 
-                        plain = (char *) realloc(plain, size+3);
+                        plain = (uint8_t *) realloc(plain, size+3);
 
                         for(i=0; i<3; i++)
                         {
@@ -136,7 +134,7 @@ char *b64decode(char *hash)
                 buf[1] = ((temp[1] & 0xf) << 4) + ((temp[2] & 0x3c) >> 2);
                 buf[2] = ((temp[2] & 0x3) << 6) + temp[3];
 
-                plain = (char *) realloc(plain, size + (i-1));
+                plain = (uint8_t *) realloc(plain, size + (i-1));
 
                 for(j=0; j<i-1; j++)
                 {
@@ -144,7 +142,7 @@ char *b64decode(char *hash)
                 }
         }
 
-        plain = (char *) realloc(plain, size+1);
+        plain = (uint8_t *) realloc(plain, size+1);
         plain[size] = '\0';
 
         return plain;

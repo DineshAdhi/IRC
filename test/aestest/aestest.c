@@ -6,36 +6,63 @@
 
 int main()
 {
-    char *key = "dinasdfasfeshdineshdineshdineshdinesheqfasdfadfs";
-    AES_CTX *ctx = init_aes356_ctx((uint8_t *)key);
-
-    char *secret = "Dinesh Adhithya";
-    int len = strlen(secret);
     int i;
 
-    printf("LEN : %d \n\n", len);
+    char *key = "zohowms_mps_secretkey";
+    AES_CTX *ctx = init_aes356_ctx((uint8_t *)key);
 
-    char *hash = (char *) aes256_encrypt(ctx, (uint8_t *)secret, len);
+    char *secret = "GoogleAppleMicrosoftIRCServerIRCClient";
+    int len = strlen(secret);
 
-    char *base64 = b64encode(hash, strlen(hash));
+    uint8_t *base64secret = b64encode((uint8_t*)secret, len);
+
+    len = strlen((char *)base64secret);
 
 
     for(i=0; i<len; i++)
     {
-        printf("%c", base64[i]);
+        printf("%0c", base64secret[i]);
+    }
+
+    printf("\n");
+
+    uint8_t *hash = aes256_encrypt(ctx, (uint8_t *)base64secret, len);
+
+    for(i=0; i<len; i++)
+    {
+        printf("%0c", hash[i]);
     }
 
 
     printf("\n");
 
-    char *plain = (char *) aes256_decrypt(ctx, (uint8_t *)hash, len);
+    uint8_t *plain = aes256_decrypt(ctx, (uint8_t *)hash, len);
 
+    uint8_t *base64plain = b64decode(plain, strlen((char*)plain));
 
-    for(i=0; i<len; i++)
+    for(i=0; i<strlen(plain); i++)
     {
-        printf("%c", (char)plain[i]);
+         printf("%c", plain[i]);
     }
 
-    
+    printf("\n");
 
+    for(i=0; i<strlen(base64plain); i++)
+    {
+         printf("%c", base64plain[i]);
+    }
+
+    printf("\n\n\n");
+
+    if(strcmp(secret, base64plain) == 0)
+    {
+        printf("TEST PASSED");
+    }
+    else 
+    {
+        printf("TEST FAILED");
+    }
+
+
+    return 0;
 }
