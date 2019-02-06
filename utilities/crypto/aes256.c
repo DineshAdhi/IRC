@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<unistd.h>
+#include<string.h>
 
 #include"aes256.h"
 #include"base64.h"
@@ -324,6 +325,7 @@ AES_WRAPPER* ini_aes256_wrapper(uint8_t *key)
 void wrapper_aes256_encrypt(AES_WRAPPER *w)
 {
       int  i = 0, j, itr = 0;
+      int rem =  (w->length % 16);
 
       state_t *s = (state_t *) calloc(1, sizeof(state_t));
       w->hash = (uint8_t *) calloc(w->length, sizeof(char));
@@ -347,7 +349,6 @@ void wrapper_aes256_encrypt(AES_WRAPPER *w)
             }
             
       #endif
-
 
       #if defined(DELETE_PLAIN_AFETER_ENCRYPTION) && (DELETE_PLAIN_AFETER_ENCRYPTION == 1)
             w->plain = NULL;

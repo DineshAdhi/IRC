@@ -8,8 +8,8 @@ enum MessageType {
 }
 
 message SERVERHELLO {
-    int32 PORT = 1;
-    string ip = 2;
+    String DFH_PUBLIC_KEY = 1;
+    String sessionId = 2;
 }
 
 message Payload {

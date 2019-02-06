@@ -4,7 +4,7 @@
 
 int main()
 {
-    char *message = "scharfes S [ß] [Eszett]";
+    char *message = "sdfadfasfasdfasdfasdfasdfasdfasdfasdfasdfasdfasfd";
     size_t size = strlen(message);
 
     char *hash = (char *) b64encode((uint8_t*)message, size);
