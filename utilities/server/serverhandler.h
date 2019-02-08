@@ -8,3 +8,4 @@
 
 int handle_incoming_connection(int serverfd);
 void handle_data_from_stdin();
+void handle_io(int id, int cfd);

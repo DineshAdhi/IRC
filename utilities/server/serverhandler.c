@@ -31,31 +31,48 @@ int handle_incoming_connection(int serverfd)
         int port;
 
         extract_client_info(clientaddr, clientip, &port);
+        registerClient(clientip, port, remotefd);
 
-        log_info("[INCOMING CONNECTION][ASSIGNED FD - %d][IP - %s][PORT - %d]", remotefd, clientip, port);
-        
         return remotefd;
 }
 
-void handle_data_from_stdin()
+void handle_io(int id, int cfd)
 {
-        char *stdinbuffer = (char *) calloc(MAX_STDIN_INPUT, sizeof(char));
-        int bytes = read(STDIN_FILENO, stdinbuffer, MAX_STDIN_INPUT);
+        Connection *c = &conns[id];
 
-        Payload pload = PAYLOAD__INIT;
-        pload.mtype = MESSAGE_TYPE__MSG_TYPE_SERVER_HELLO;
-        
-        SERVERHELLO shello = SERVERHELLO__INIT;
-        shello.ip = stdinbuffer;
-        shello.port = 4321;
+        // if(c->stage != c->payload->mtype)
+        // {
+        //         log_error("[%s][EXCEPTION DURING HANDSHAKE][STAGE MISMATCH]", conns[id].sid);
+        //         deregisterClient(c);
+        //         return;
+        // }
 
-        pload.serverhello = &shello;
+        switch(c->stage)
+        {
+                log_debug("ENTERED SWITCH");
+                case MESSAGE_TYPE__clienthello:
+                {
+                        if(readconnection(c, MESSAGE_TYPE__clienthello) == SUCCESS)
+                        {
+                                c->oppdfhkey = (uint8_t *) c->payload->data->dfhkey;
+                                c->sharedkey = resolveDFHKey(c->randomkey, c->oppdfhkey);
+                                c->stage = MESSAGE_TYPE__serverhello;
+                                
+                                IRCMessage *ircmessage = (IRCMessage *) malloc(1);
+                                ircmessage->dfhkey = (char *)createDFHKey(c->randomkey);
 
-        int len = payload__get_packed_size(&pload);
+                                wrapConnection(c, ircmessage);
+                                c->writable = WRITABLE;
+                                break;
+                        }
+                }
+                
+                case MESSAGE_TYPE__serverhello: 
+                {
+                        break;
+                }
 
-        uint8_t buffer[len];
-
-        payload__pack(&pload, buffer);
-        
-        write(serverfd+1, buffer, len);
+                default: 
+                        break;
+        }
 }

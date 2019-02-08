@@ -9,7 +9,9 @@
 #include<math.h>
 #include<time.h>
 
+#include"../../protobufs/payload.pb-c.h"
 #include "commonutil.h"
+#include "../server/serverutil.h"
 #include "../logger/log.h"
 
 char RAND[63] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
@@ -48,6 +50,23 @@ void extract_client_info(struct sockaddr_in clientaddr, char *ip, int *port)
         strcpy(ip, inet_ntoa(clientaddr.sin_addr));
 }
 
+char *createSessionId()
+{
+        int i;
+
+        char *sid = (char *)calloc(SIDLENGTH, sizeof(char));
+
+        for(i=0; i<SIDLENGTH; i++)
+        {
+                srand(time(NULL));
+                int r = rand() % 20 + 1;
+                log_info("%d", r);
+                sid[i] = (uint8_t) RAND[r];
+        }
+
+        return sid;  
+}
+
 uint8_t *createRandomKey()
 {
         int i;
@@ -56,6 +75,7 @@ uint8_t *createRandomKey()
 
         for(i=0; i<KEYLENGTH; i++)
         {
+
                 int r = GENERATE_RANDOM();
                 key[i] = (uint8_t) RAND[r];
         }
@@ -87,4 +107,42 @@ uint8_t *resolveDFHKey(uint8_t *secretkey, uint8_t *publickey)
         }
 
         return rKey;
+}
+
+int readconnection(Connection *c, MessageType mtype)
+{
+        uint8_t *buffer = (uint8_t *) calloc(MAX_DATA_LENGTH, sizeof(uint8_t)); 
+
+        log_debug("%d CONNECTION READ", c->len);
+
+        c->len = read(c->fd, buffer, MAX_DATA_LENGTH);
+        c->payload = ircpayload__unpack(NULL, c->len, buffer);
+
+        if(c->len == 0)
+        {
+                log_info("[%s][CLIENT DISCONNECTION]", c->sid);
+                deregisterClient(c);
+                return FAILURE;
+        }
+
+        if(c->secure == NOT_SECURE)
+        {
+                if(c->payload->mtype != mtype)
+                {
+                        log_error("[%s][HANDSHAKE EXCEPTION][MISMATCH OF STAGE]", c->sid, c->len);
+                        deregisterClient(c);
+                        return FAILURE;
+                }
+        }
+
+        return SUCCESS;
+}
+
+void wrapConnection(Connection *c, IRCMessage *data)
+{
+        IRCPayload *payload = (IRCPayload *)calloc(1, sizeof(IRCPayload));
+        payload->data = data;
+        payload->mtype = c->stage;
+
+        c->payload = payload;
 }

@@ -15,89 +15,89 @@ PROTOBUF_C__BEGIN_DECLS
 #endif
 
 
-typedef struct _SERVERHELLO SERVERHELLO;
-typedef struct _Payload Payload;
+typedef struct _IRCMessage IRCMessage;
+typedef struct _IRCPayload IRCPayload;
 
 
 /* --- enums --- */
 
 typedef enum _MessageType {
-  MESSAGE_TYPE__MSG_TYPE_SERVER_HELLO = 0,
-  MESSAGE_TYPE__MSG_TYPE_CLIENT_HELLO = 1,
-  MESSAGE_TYPE__MSG_TYPE_USER_LIST = 3,
-  MESSAGE_TYPE__MSG_TYPE_RELAY_MESSSAGE = 2
+  MESSAGE_TYPE__serverhello = 0,
+  MESSAGE_TYPE__clienthello = 1,
+  MESSAGE_TYPE__userlist = 3,
+  MESSAGE_TYPE__relaymessage = 2
     PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(MESSAGE_TYPE)
 } MessageType;
 
 /* --- messages --- */
 
-struct  _SERVERHELLO
+struct  _IRCMessage
 {
   ProtobufCMessage base;
-  int32_t port;
-  char *ip;
+  char *dfhkey;
+  char *len;
 };
-#define SERVERHELLO__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&serverhello__descriptor) \
-    , 0, (char *)protobuf_c_empty_string }
+#define IRCMESSAGE__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&ircmessage__descriptor) \
+    , (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string }
 
 
-struct  _Payload
+struct  _IRCPayload
 {
   ProtobufCMessage base;
+  IRCMessage *data;
   MessageType mtype;
-  SERVERHELLO *serverhello;
 };
-#define PAYLOAD__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&payload__descriptor) \
-    , MESSAGE_TYPE__MSG_TYPE_SERVER_HELLO, NULL }
+#define IRCPAYLOAD__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&ircpayload__descriptor) \
+    , NULL, MESSAGE_TYPE__serverhello }
 
 
-/* SERVERHELLO methods */
-void   serverhello__init
-                     (SERVERHELLO         *message);
-size_t serverhello__get_packed_size
-                     (const SERVERHELLO   *message);
-size_t serverhello__pack
-                     (const SERVERHELLO   *message,
+/* IRCMessage methods */
+void   ircmessage__init
+                     (IRCMessage         *message);
+size_t ircmessage__get_packed_size
+                     (const IRCMessage   *message);
+size_t ircmessage__pack
+                     (const IRCMessage   *message,
                       uint8_t             *out);
-size_t serverhello__pack_to_buffer
-                     (const SERVERHELLO   *message,
+size_t ircmessage__pack_to_buffer
+                     (const IRCMessage   *message,
                       ProtobufCBuffer     *buffer);
-SERVERHELLO *
-       serverhello__unpack
+IRCMessage *
+       ircmessage__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   serverhello__free_unpacked
-                     (SERVERHELLO *message,
+void   ircmessage__free_unpacked
+                     (IRCMessage *message,
                       ProtobufCAllocator *allocator);
-/* Payload methods */
-void   payload__init
-                     (Payload         *message);
-size_t payload__get_packed_size
-                     (const Payload   *message);
-size_t payload__pack
-                     (const Payload   *message,
+/* IRCPayload methods */
+void   ircpayload__init
+                     (IRCPayload         *message);
+size_t ircpayload__get_packed_size
+                     (const IRCPayload   *message);
+size_t ircpayload__pack
+                     (const IRCPayload   *message,
                       uint8_t             *out);
-size_t payload__pack_to_buffer
-                     (const Payload   *message,
+size_t ircpayload__pack_to_buffer
+                     (const IRCPayload   *message,
                       ProtobufCBuffer     *buffer);
-Payload *
-       payload__unpack
+IRCPayload *
+       ircpayload__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   payload__free_unpacked
-                     (Payload *message,
+void   ircpayload__free_unpacked
+                     (IRCPayload *message,
                       ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
-typedef void (*SERVERHELLO_Closure)
-                 (const SERVERHELLO *message,
+typedef void (*IRCMessage_Closure)
+                 (const IRCMessage *message,
                   void *closure_data);
-typedef void (*Payload_Closure)
-                 (const Payload *message,
+typedef void (*IRCPayload_Closure)
+                 (const IRCPayload *message,
                   void *closure_data);
 
 /* --- services --- */
@@ -106,8 +106,8 @@ typedef void (*Payload_Closure)
 /* --- descriptors --- */
 
 extern const ProtobufCEnumDescriptor    message_type__descriptor;
-extern const ProtobufCMessageDescriptor serverhello__descriptor;
-extern const ProtobufCMessageDescriptor payload__descriptor;
+extern const ProtobufCMessageDescriptor ircmessage__descriptor;
+extern const ProtobufCMessageDescriptor ircpayload__descriptor;
 
 PROTOBUF_C__END_DECLS
 
