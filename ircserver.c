@@ -27,12 +27,13 @@ int main()
         {
                 maxfd = preparefds_server(serverfd, &read_fds, &write_fds, &except_fds);
 
-                int activity = select(maxfd + 1, &read_fds, &write_fds, &except_fds, NULL);
+                int activity = select(maxfd, &read_fds, &write_fds, &except_fds, NULL);
 
                 switch(activity)
                 {
                        case -1:
                            perror("select()");
+                           exit(1);
                            break;
                        
                        case 0:
@@ -63,7 +64,7 @@ int main()
                                                     continue;
                                             }
                                         
-                                            handle_io(i, cfd);
+                                            handle_io_server(i, cfd);
                                     }
                             }
                 }

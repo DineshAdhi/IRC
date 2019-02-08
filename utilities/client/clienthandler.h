@@ -7,4 +7,4 @@
 #include<signal.h>
 
 void handle_stdin_data();
-int read_from_server();
+int handle_io_client();

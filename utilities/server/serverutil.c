@@ -46,8 +46,11 @@ void initializeIRCServer()
                 conns[i].ip = NULL;
                 conns[i].payload = NULL;
                 conns[i].writable = NOT_WRITABLE;
+                conns[i].stage = UNKNOWN_STAGE;
                 conns[i].registered = NOT_REGISTERED;
         }
+
+        initializeCommonUtils();
 }
 
 struct sockaddr_in* getserversockAddr()
@@ -87,6 +90,11 @@ int preparefds_server(int serverfd, fd_set *read_fds, fd_set *write_fds, fd_set 
         for(i=0; i<CLIENT_MAX; i++)
         {
                 tempfd = conns[i].fd;
+
+                if(tempfd == NO_FD)
+                {
+                        continue;
+                }
 
                 if(tempfd > 0)
                 {
@@ -131,7 +139,7 @@ int registerClient(char *ip, int port, int remotefd)
         conns[i].fd = remotefd;
         conns[i].registered = REGISTERED;
         conns[i].payload = (IRCPayload *) calloc(1, sizeof(IRCPayload));
-        conns[i].payload->mtype = MESSAGE_TYPE__clienthello;
+        conns[i].stage = MESSAGE_TYPE__clienthello;
         conns[i].secure = NOT_SECURE;
         conns[i].sid = createSessionId();
         conns[i].randomkey = createRandomKey();
@@ -145,7 +153,7 @@ void deregisterClient(Connection *c)
 {
         log_info("[%s][DEREGISTERING CONNECTION][FD - %d][IP - %s][PORT - %d]", c->sid, c->fd, c->ip, c->port);
         close(c->fd);
-        conns->fd = NO_FD;
+        c->fd = NO_FD;
 }
 
 

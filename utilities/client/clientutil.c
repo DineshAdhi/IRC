@@ -14,7 +14,7 @@
 void terminateClient()
 {
         log_info("[IRCCLIENT][SIGINT/SIGTSTP RECEIVED][HALTING SERVER]");
-        close(clientfd);
+        close(serverconn->fd);
         exit(1);
 }
 
@@ -34,6 +34,17 @@ void initiateIRCClient()
                 perror("sigaction");
                 log_warn("[SIGACTION EXCEPTION][SIGTSTP]");
         }
+
+        serverconn = (Connection *) calloc(1, sizeof(Connection));
+        serverconn->fd = NO_FD;
+        serverconn->port = -1;
+        serverconn->ip = NULL;
+        serverconn->payload = NULL;
+        serverconn->writable = NOT_WRITABLE;
+        serverconn->stage = UNKNOWN_STAGE;
+        serverconn->registered = NOT_REGISTERED;
+
+        initializeCommonUtils();
 }
 
 struct sockaddr_in getremoteserveraddr()
@@ -50,11 +61,14 @@ struct sockaddr_in getremoteserveraddr()
          return *addr;
 }
 
+
 int _connect_to_server(int reconnect)
 {
+      serverconn->fd = createSocket();
+
       struct sockaddr_in addr = getremoteserveraddr();
 
-      int result = connect(clientfd, (struct sockaddr *)&addr, sizeof(addr));
+      int result = connect(serverconn->fd, (struct sockaddr *)&addr, sizeof(addr));
       
       if(result < 0)
       {
@@ -70,24 +84,43 @@ int _connect_to_server(int reconnect)
             }
       }
 
-      char serverip[16] = {};
+      char ip[16] = {};
       int port;
 
-      extract_client_info(addr, serverip, &port);
+      extract_addr_info(addr, ip, &port);
+      
+      serverconn->ip = ip;
+      serverconn->port = port;
+      serverconn->registered = REGISTERED;
+      serverconn->payload = (IRCPayload *) calloc(1, sizeof(IRCPayload));
+      serverconn->stage = MESSAGE_TYPE__clienthello;
+      serverconn->secure = NOT_SECURE;
+      serverconn->writable = WRITABLE;
+      serverconn->randomkey = createRandomKey();
 
-      log_info("[IRCCLIENT][CONNECTED TO SERVER][REMOTE SERVER IP - %s][PORT - %d]", serverip, port);
+      log_info("[IRCCLIENT][CONNECTED TO SERVER][REMOTE SERVER IP - %s][PORT - %d]", serverconn->ip, serverconn->port);
 
       return SUCCESS;
 }
 
-int preparefds_client(int clientfd, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds)
+void preparefds_client(fd_set *read_fds, fd_set *write_fds, fd_set *except_fds)
 {
       FD_ZERO(read_fds);
       FD_ZERO(write_fds);
       FD_ZERO(except_fds);
 
-      FD_SET(clientfd, read_fds);
-      FD_SET(STDIN_FILENO, read_fds);
+      FD_SET(serverconn->fd, read_fds);
+      
+      if(serverconn->writable == WRITABLE)
+      {
+            FD_SET(serverconn->fd, write_fds);
+      }
 
-      return clientfd + 1;
+      FD_SET(STDIN_FILENO, read_fds);
+}
+
+void deregisterServer()
+{
+      log_info("[DEREGISTERING SERVER]");
+      close(serverconn->fd);
 }

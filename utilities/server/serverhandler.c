@@ -30,26 +30,18 @@ int handle_incoming_connection(int serverfd)
         char *clientip = (char *) calloc(100, sizeof(char));
         int port;
 
-        extract_client_info(clientaddr, clientip, &port);
+        extract_addr_info(clientaddr, clientip, &port);
         registerClient(clientip, port, remotefd);
 
         return remotefd;
 }
 
-void handle_io(int id, int cfd)
+void handle_io_server(int id, int cfd)
 {
         Connection *c = &conns[id];
 
-        // if(c->stage != c->payload->mtype)
-        // {
-        //         log_error("[%s][EXCEPTION DURING HANDSHAKE][STAGE MISMATCH]", conns[id].sid);
-        //         deregisterClient(c);
-        //         return;
-        // }
-
         switch(c->stage)
         {
-                log_debug("ENTERED SWITCH");
                 case MESSAGE_TYPE__clienthello:
                 {
                         if(readconnection(c, MESSAGE_TYPE__clienthello) == SUCCESS)
@@ -65,6 +57,10 @@ void handle_io(int id, int cfd)
                                 c->writable = WRITABLE;
                                 break;
                         }
+                        else 
+                        {
+                                deregisterClient(c);
+                        }
                 }
                 
                 case MESSAGE_TYPE__serverhello: 
@@ -73,6 +69,7 @@ void handle_io(int id, int cfd)
                 }
 
                 default: 
+                        log_info("[%s][HANDSHAKE EXCEPTION][UNKNOWN STAGE]", c->fd);
                         break;
         }
 }

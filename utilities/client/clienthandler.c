@@ -45,19 +45,38 @@ int initiateReconnect()
       return FAILURE;
 }
 
-int read_from_server()
+int handle_io_client()
 {
-      char *buffer = (char *) calloc(clientfd, MAX_DATA_LENGTH);
-      int bytes = read(clientfd, buffer, MAX_DATA_LENGTH);
-
-      if(bytes == 0 && initiateReconnect() == FAILURE)
+      if(serverconn->registered == NOT_REGISTERED)
       {
-            log_fatal("[IRCCLIENT][SERVER DISCONNECTED]");
-            close(clientfd);
-            return -1;
+            log_info("[EXCEPTION WHILE MAKING CONNECTION][CONNECTION NOT REGISTERED");
+            deregisterServer();
+            return FAILURE;
       }
 
-      log_debug("[LENGTH - %d]", bytes);
+      switch(serverconn->stage)
+      {
+            case MESSAGE_TYPE__clienthello:
+            {
+                  IRCMessage *message = (IRCMessage *) calloc(1, sizeof(IRCMessage));
+                  message->dfhkey = (char *) createDFHKey(serverconn->randomkey);
 
-      return bytes;
+                  serverconn->stage = MESSAGE_TYPE__serverhello;
+                  wrapConnection(serverconn, message);
+
+                  if(writeconnection(serverconn, MESSAGE_TYPE__serverhello) == FAILURE)
+                  {
+                        deregisterServer();
+                        exit(1);
+                  }
+
+                  break;
+            }      
+
+            default:
+                  log_info("[UNKNOWN STAGE EXCEPTION]");
+                  break;
+      }
+      
+      return SUCCESS;
 }

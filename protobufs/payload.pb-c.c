@@ -97,11 +97,11 @@ void   ircpayload__free_unpacked
   assert(message->base.descriptor == &ircpayload__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-static const ProtobufCFieldDescriptor ircmessage__field_descriptors[2] =
+static const ProtobufCFieldDescriptor ircmessage__field_descriptors[1] =
 {
   {
     "dfhkey",
-    3,
+    1,
     PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_STRING,
     0,   /* quantifier_offset */
@@ -111,28 +111,14 @@ static const ProtobufCFieldDescriptor ircmessage__field_descriptors[2] =
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
-  {
-    "len",
-    5,
-    PROTOBUF_C_LABEL_NONE,
-    PROTOBUF_C_TYPE_STRING,
-    0,   /* quantifier_offset */
-    offsetof(IRCMessage, len),
-    NULL,
-    &protobuf_c_empty_string,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
 };
 static const unsigned ircmessage__field_indices_by_name[] = {
   0,   /* field[0] = dfhkey */
-  1,   /* field[1] = len */
 };
-static const ProtobufCIntRange ircmessage__number_ranges[2 + 1] =
+static const ProtobufCIntRange ircmessage__number_ranges[1 + 1] =
 {
-  { 3, 0 },
-  { 5, 1 },
-  { 0, 2 }
+  { 1, 0 },
+  { 0, 1 }
 };
 const ProtobufCMessageDescriptor ircmessage__descriptor =
 {
@@ -142,10 +128,10 @@ const ProtobufCMessageDescriptor ircmessage__descriptor =
   "IRCMessage",
   "",
   sizeof(IRCMessage),
-  2,
+  1,
   ircmessage__field_descriptors,
   ircmessage__field_indices_by_name,
-  2,  ircmessage__number_ranges,
+  1,  ircmessage__number_ranges,
   (ProtobufCMessageInit) ircmessage__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
@@ -153,7 +139,7 @@ static const ProtobufCFieldDescriptor ircpayload__field_descriptors[2] =
 {
   {
     "data",
-    3,
+    1,
     PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
@@ -165,7 +151,7 @@ static const ProtobufCFieldDescriptor ircpayload__field_descriptors[2] =
   },
   {
     "mtype",
-    4,
+    2,
     PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_ENUM,
     0,   /* quantifier_offset */
@@ -182,7 +168,7 @@ static const unsigned ircpayload__field_indices_by_name[] = {
 };
 static const ProtobufCIntRange ircpayload__number_ranges[1 + 1] =
 {
-  { 3, 0 },
+  { 1, 0 },
   { 0, 2 }
 };
 const ProtobufCMessageDescriptor ircpayload__descriptor =
@@ -202,20 +188,20 @@ const ProtobufCMessageDescriptor ircpayload__descriptor =
 };
 static const ProtobufCEnumValue message_type__enum_values_by_number[4] =
 {
-  { "serverhello", "MESSAGE_TYPE__serverhello", 0 },
-  { "clienthello", "MESSAGE_TYPE__clienthello", 1 },
-  { "relaymessage", "MESSAGE_TYPE__relaymessage", 2 },
-  { "userlist", "MESSAGE_TYPE__userlist", 3 },
+  { "clienthello", "MESSAGE_TYPE__clienthello", 0 },
+  { "serverhello", "MESSAGE_TYPE__serverhello", 1 },
+  { "userlist", "MESSAGE_TYPE__userlist", 2 },
+  { "relaymessage", "MESSAGE_TYPE__relaymessage", 3 },
 };
 static const ProtobufCIntRange message_type__value_ranges[] = {
 {0, 0},{0, 4}
 };
 static const ProtobufCEnumValueIndex message_type__enum_values_by_name[4] =
 {
-  { "clienthello", 1 },
-  { "relaymessage", 2 },
-  { "serverhello", 0 },
-  { "userlist", 3 },
+  { "clienthello", 0 },
+  { "relaymessage", 3 },
+  { "serverhello", 1 },
+  { "userlist", 2 },
 };
 const ProtobufCEnumDescriptor message_type__descriptor =
 {

@@ -13,15 +13,14 @@
 int main()
 {
       initiateIRCClient();
-      clientfd = createSocket();
-      int maxfd = clientfd + 1;
       fd_set read_fds, write_fds, except_fds;
 
-      initiate_connect_to_server();
+      initiate_connect_to_server(); 
+      int maxfd = serverconn->fd + 1;
 
       while(TRUE)
       {
-            maxfd = preparefds_client(clientfd, &read_fds, &write_fds, &except_fds);
+            preparefds_client(&read_fds, &write_fds, &except_fds);
 
             int activity = select(maxfd, &read_fds, &write_fds, &except_fds, NULL);
 
@@ -29,9 +28,11 @@ int main()
             {
                   case -1:
                   case 0:
+                  {
                      perror("select()");
                      exit(1);
                      break;
+                  }
                   
                   default:
 
@@ -40,12 +41,20 @@ int main()
                            handle_stdin_data();
                      }
 
-                     if(FD_ISSET(clientfd, &read_fds))
+                     if(FD_ISSET(serverconn->fd, &read_fds))
                      {
-                           if(read_from_server() < 0)
-                           {
-                                 exit(1);
-                           }
+                              if( handle_io_client() == FAILURE)
+                              {
+                                    exit(1);
+                              }
+                     }
+
+                     if(FD_ISSET(serverconn->fd, &write_fds))
+                     {
+                              if( handle_io_client() == FAILURE)
+                              {
+                                    exit(1);
+                              }
                      }
             }
       }
