@@ -43,6 +43,7 @@ void initiateIRCClient()
         serverconn->writable = NOT_WRITABLE;
         serverconn->stage = UNKNOWN_STAGE;
         serverconn->registered = NOT_REGISTERED;
+        serverconn->sid = "111111";
 
         initializeCommonUtils();
 }

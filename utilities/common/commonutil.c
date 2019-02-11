@@ -39,6 +39,23 @@ int GENERATE_RANDOM()
         return r % RANDOMLEN;
 }
 
+void printKey(uint8_t *key)
+{
+        int i;
+
+        char *hash = (char *) malloc(KEYLENGTH * 2);
+        int itr = 0;
+
+        for(i=0; i<KEYLENGTH * 2; i=i+2)
+        {
+                printf("%02X ", key[itr++]);
+                fflush(stdout);
+        }
+
+        printf("\n");
+        fflush(stdout);
+}
+
 int createSocket()
 {
         int fd = socket(SOCKET_FAMILY, SOCKET_TYPE, PROTOCOL);
@@ -99,10 +116,9 @@ uint8_t *createRandomKey()
         for(i=0; i<KEYLENGTH; i++)
         {
                 int r = GENERATE_RANDOM();
-                key[i] = (uint8_t) RAND[r];
+                key[i] = (uint8_t) RAND[r] % DFHLIMIT;
         }
-
-
+        
         return key;
 }
 
@@ -110,12 +126,14 @@ uint8_t *createDFHKey(uint8_t *key)
 {
         int i;
 
+        uint8_t *dfhkey = (uint8_t*) calloc(KEYLENGTH, sizeof(uint8_t));
+
         for(i=0; i<KEYLENGTH; i++)
         {
-                key[i] = DFH(DFH_G, key[i]);
+                dfhkey[i] = DFH(DFH_G, key[i]);
         }
 
-        return key;
+        return dfhkey;
 }
 
 uint8_t *resolveDFHKey(uint8_t *secretkey, uint8_t *publickey)
@@ -152,6 +170,8 @@ int readconnection(Connection *c, MessageType mtype)
                 return FAILURE;
         }
 
+        log_info("[%s][READ %d FROM CLIENT]", c->sid, c->len);
+
         if(c->secure == NOT_SECURE)
         {
                 if(c->payload->mtype != mtype)
@@ -178,9 +198,7 @@ int writeconnection(Connection *c, MessageType mtype)
                 return FAILURE;
         }
 
-        IRCPayload *pload = c->payload;
-
-        c->len = ircpayload__get_packed_size(pload);
+        c->len = ircpayload__get_packed_size(c->payload);
         uint8_t *buffer = (uint8_t *) calloc(c->len, sizeof(uint8_t));
         ircpayload__pack(c->payload, buffer);
 
@@ -197,9 +215,9 @@ int writeconnection(Connection *c, MessageType mtype)
 
 void wrapConnection(Connection *c, IRCMessage *data)
 {
-        IRCPayload *payload = (IRCPayload *) calloc(1, sizeof(IRCPayload));
-        payload->data = data;
-        payload->mtype = c->stage;
-
-        c->payload = payload;
+        c->payload = (IRCPayload *) malloc(sizeof(IRCPayload));
+        ircpayload__init(c->payload);
+        
+        c->payload->data = data;
+        c->payload->mtype = c->stage;
 }

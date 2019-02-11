@@ -33,6 +33,7 @@
 
 #define DFH_G 2
 #define DFH_P 57
+#define DFHLIMIT 10
 
 #define NO_FD -1
 #define REGISTERED 1
@@ -77,5 +78,6 @@ uint8_t *resolveDFHKey(uint8_t *secretkey, uint8_t *publickey);
 void extract_addr_info(struct sockaddr_in clientaddr, char *ip, int *port);
 int generateRandom();
 void initializeCommonUtils();
+void printKey(uint8_t *key);
 
 #endif

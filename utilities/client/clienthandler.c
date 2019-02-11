@@ -59,7 +59,10 @@ int handle_io_client()
             case MESSAGE_TYPE__clienthello:
             {
                   IRCMessage *message = (IRCMessage *) calloc(1, sizeof(IRCMessage));
+                  ircmessage__init(message);
                   message->dfhkey = (char *) createDFHKey(serverconn->randomkey);
+
+                  log_debug("[CLIENT DFH KEY]"); printKey((uint8_t *)message->dfhkey);
 
                   serverconn->stage = MESSAGE_TYPE__serverhello;
                   wrapConnection(serverconn, message);
@@ -73,8 +76,27 @@ int handle_io_client()
                   break;
             }      
 
+            case MESSAGE_TYPE__serverhello: 
+            {
+                  if(readconnection(serverconn, UNKNOWN_STAGE) == SUCCESS)
+                  {
+                        serverconn->oppdfhkey = (uint8_t *) serverconn->payload->data->dfhkey;
+                        log_debug("[CLIENT OPP DFH KEY]"); printKey(serverconn->oppdfhkey);
+                        serverconn->sharedkey = resolveDFHKey(serverconn->randomkey, serverconn->oppdfhkey);
+                        log_debug("[CLIENT SHARED KEY]"); printKey(serverconn->sharedkey);
+                        serverconn->stage = UNKNOWN_STAGE;
+                        serverconn->writable = WRITABLE;
+                  }
+                  else 
+                  {
+                        log_error("[ERROR WHILE READING FROM CONNECTION]");
+                        deregisterServer();
+                  }
+                  break;
+            }
+
             default:
-                  log_info("[UNKNOWN STAGE EXCEPTION]");
+                  //log_info("[UNKNOWN STAGE EXCEPTION]");
                   break;
       }
       

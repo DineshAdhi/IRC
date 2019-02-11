@@ -44,32 +44,48 @@ void handle_io_server(int id, int cfd)
         {
                 case MESSAGE_TYPE__clienthello:
                 {
-                        if(readconnection(c, MESSAGE_TYPE__clienthello) == SUCCESS)
+                        if(readconnection(c, MESSAGE_TYPE__serverhello) == SUCCESS)
                         {
                                 c->oppdfhkey = (uint8_t *) c->payload->data->dfhkey;
+                                log_debug("[OPP DFH KEY]"); printKey(c->oppdfhkey);
                                 c->sharedkey = resolveDFHKey(c->randomkey, c->oppdfhkey);
+                                log_debug("[SERVER SHARED KEY]"); printKey(c->sharedkey);
                                 c->stage = MESSAGE_TYPE__serverhello;
-                                
-                                IRCMessage *ircmessage = (IRCMessage *) malloc(1);
-                                ircmessage->dfhkey = (char *)createDFHKey(c->randomkey);
-
-                                wrapConnection(c, ircmessage);
                                 c->writable = WRITABLE;
                                 break;
                         }
                         else 
                         {
+                                log_error("[IRCSERVER][ERROR WHILE READING FROM CONNECTION]");
                                 deregisterClient(c);
                         }
                 }
                 
                 case MESSAGE_TYPE__serverhello: 
                 {
+                        IRCMessage *ircmessage = (IRCMessage *) malloc(1);
+                        ircmessage__init(ircmessage);
+                        ircmessage->dfhkey = (char *)createDFHKey(c->randomkey);
+                        log_debug("[SERVER RANDOM KEY]"); printKey((uint8_t *)ircmessage->dfhkey);
+                        c->stage = UNKNOWN_STAGE;
+
+                        wrapConnection(c, ircmessage);
+
+                        if(writeconnection(c, MESSAGE_TYPE__serverhello) == SUCCESS)
+                        {
+                                
+                        }
+                        else 
+                        {
+                                log_error("[IRCSERVER][ERROR WHILE WRITING TO CONNECTION]");
+                                deregisterClient(c);
+                        }
+                
                         break;
                 }
 
                 default: 
-                        log_info("[%s][HANDSHAKE EXCEPTION][UNKNOWN STAGE]", c->fd);
+                        //log_info("[%s][HANDSHAKE EXCEPTION][UNKNOWN STAGE]", c->fd);
                         break;
         }
 }

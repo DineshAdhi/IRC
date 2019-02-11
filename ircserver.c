@@ -66,6 +66,17 @@ int main()
                                         
                                             handle_io_server(i, cfd);
                                     }
+
+                                    if(FD_ISSET(cfd, &write_fds))
+                                    {
+                                            if(conns[i].registered != REGISTERED || conns[i].payload == NULL)
+                                            {
+                                                    deregisterClient(&conns[i]);
+                                                    continue;
+                                            }
+
+                                            handle_io_server(i, cfd);
+                                    }
                             }
                 }
         }
