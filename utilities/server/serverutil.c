@@ -20,6 +20,7 @@ void terminateServer()
 
 void initializeIRCServer()
 {
+        int i;
         struct sigaction action;
         action.sa_handler = terminateServer;
 
@@ -35,7 +36,21 @@ void initializeIRCServer()
                 log_warn("[SIGACTION EXCEPTION][SIGTSTP]");
         } 
 
-        client = (int *) calloc(CLIENT_MAX, sizeof(int));
+        conns = (Connection *) calloc(CLIENT_MAX, sizeof(Connection));
+
+        for(i=0; i<CLIENT_MAX; i++)
+        {
+                conns[i].fd = NO_FD;
+                conns[i].id = i;
+                conns[i].port = -1;
+                conns[i].ip = NULL;
+                conns[i].payload = NULL;
+                conns[i].writable = NOT_WRITABLE;
+                conns[i].stage = UNKNOWN_STAGE;
+                conns[i].registered = NOT_REGISTERED;
+        }
+
+        initializeCommonUtils();
 }
 
 struct sockaddr_in* getserversockAddr()
@@ -61,7 +76,7 @@ int listenforconnections(int fd)
         return result;
 }
 
-int preparefds_server(int serverfd, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds, int *client)
+int preparefds_server(int serverfd, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds)
 {
         FD_ZERO(read_fds);
         FD_ZERO(write_fds);
@@ -74,12 +89,21 @@ int preparefds_server(int serverfd, fd_set *read_fds, fd_set *write_fds, fd_set 
 
         for(i=0; i<CLIENT_MAX; i++)
         {
-                tempfd = client[i];
+                tempfd = conns[i].fd;
+
+                if(tempfd == NO_FD)
+                {
+                        continue;
+                }
 
                 if(tempfd > 0)
                 {
                         FD_SET(tempfd, read_fds);
-                        FD_SET(tempfd, write_fds);
+                        
+                        if(conns[i].writable == WRITABLE)
+                        {
+                                FD_SET(tempfd, write_fds);
+                        }
                 }
 
                 if(tempfd > maxfd)
@@ -89,6 +113,47 @@ int preparefds_server(int serverfd, fd_set *read_fds, fd_set *write_fds, fd_set 
         }
 
         return maxfd + 1;
+}
+
+int registerClient(char *ip, int port, int remotefd)
+{
+        int i;
+
+        for(i=0; i<CLIENT_MAX; i++)
+        {
+                if(conns[i].fd == NO_FD)
+                {
+                        break;
+                }
+        }
+
+        if(i >= CLIENT_MAX)
+        {
+                log_info("[IRCCLIENT LIST OVERFLOW][DROPPING CONNECTION DUE TO MAX CONNECTION EXCEED]");
+                close(remotefd);
+                return FAILURE;
+        }
+
+        conns[i].ip = ip;
+        conns[i].port = port;
+        conns[i].fd = remotefd;
+        conns[i].registered = REGISTERED;
+        conns[i].payload = (IRCPayload *) calloc(1, sizeof(IRCPayload));
+        conns[i].stage = MESSAGE_TYPE__clienthello;
+        conns[i].secure = NOT_SECURE;
+        conns[i].sid = createSessionId();
+        conns[i].randomkey = createRandomKey();
+
+        log_info("[%s][NEW INCOMING CONNECTION][IRCCLIENT REGISTERED][ASSIGNED FD - %d][IP - %s][PORT - %d]", conns[i].sid, remotefd, ip, port);
+
+        return i;
+}
+
+void deregisterClient(Connection *c)
+{
+        log_info("[%s][DEREGISTERING CONNECTION][FD - %d][IP - %s][PORT - %d]", c->sid, c->fd, c->ip, c->port);
+        close(c->fd);
+        c->fd = NO_FD;
 }
 
 

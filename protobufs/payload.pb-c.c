@@ -7,214 +7,201 @@
 #endif
 
 #include "payload.pb-c.h"
-void   serverhello__init
-                     (SERVERHELLO         *message)
+void   ircmessage__init
+                     (IRCMessage         *message)
 {
-  static const SERVERHELLO init_value = SERVERHELLO__INIT;
+  static const IRCMessage init_value = IRCMESSAGE__INIT;
   *message = init_value;
 }
-size_t serverhello__get_packed_size
-                     (const SERVERHELLO *message)
+size_t ircmessage__get_packed_size
+                     (const IRCMessage *message)
 {
-  assert(message->base.descriptor == &serverhello__descriptor);
+  assert(message->base.descriptor == &ircmessage__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t serverhello__pack
-                     (const SERVERHELLO *message,
+size_t ircmessage__pack
+                     (const IRCMessage *message,
                       uint8_t       *out)
 {
-  assert(message->base.descriptor == &serverhello__descriptor);
+  assert(message->base.descriptor == &ircmessage__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t serverhello__pack_to_buffer
-                     (const SERVERHELLO *message,
+size_t ircmessage__pack_to_buffer
+                     (const IRCMessage *message,
                       ProtobufCBuffer *buffer)
 {
-  assert(message->base.descriptor == &serverhello__descriptor);
+  assert(message->base.descriptor == &ircmessage__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-SERVERHELLO *
-       serverhello__unpack
+IRCMessage *
+       ircmessage__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (SERVERHELLO *)
-     protobuf_c_message_unpack (&serverhello__descriptor,
+  return (IRCMessage *)
+     protobuf_c_message_unpack (&ircmessage__descriptor,
                                 allocator, len, data);
 }
-void   serverhello__free_unpacked
-                     (SERVERHELLO *message,
+void   ircmessage__free_unpacked
+                     (IRCMessage *message,
                       ProtobufCAllocator *allocator)
 {
   if(!message)
     return;
-  assert(message->base.descriptor == &serverhello__descriptor);
+  assert(message->base.descriptor == &ircmessage__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   payload__init
-                     (Payload         *message)
+void   ircpayload__init
+                     (IRCPayload         *message)
 {
-  static const Payload init_value = PAYLOAD__INIT;
+  static const IRCPayload init_value = IRCPAYLOAD__INIT;
   *message = init_value;
 }
-size_t payload__get_packed_size
-                     (const Payload *message)
+size_t ircpayload__get_packed_size
+                     (const IRCPayload *message)
 {
-  assert(message->base.descriptor == &payload__descriptor);
+  assert(message->base.descriptor == &ircpayload__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t payload__pack
-                     (const Payload *message,
+size_t ircpayload__pack
+                     (const IRCPayload *message,
                       uint8_t       *out)
 {
-  assert(message->base.descriptor == &payload__descriptor);
+  assert(message->base.descriptor == &ircpayload__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t payload__pack_to_buffer
-                     (const Payload *message,
+size_t ircpayload__pack_to_buffer
+                     (const IRCPayload *message,
                       ProtobufCBuffer *buffer)
 {
-  assert(message->base.descriptor == &payload__descriptor);
+  assert(message->base.descriptor == &ircpayload__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-Payload *
-       payload__unpack
+IRCPayload *
+       ircpayload__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (Payload *)
-     protobuf_c_message_unpack (&payload__descriptor,
+  return (IRCPayload *)
+     protobuf_c_message_unpack (&ircpayload__descriptor,
                                 allocator, len, data);
 }
-void   payload__free_unpacked
-                     (Payload *message,
+void   ircpayload__free_unpacked
+                     (IRCPayload *message,
                       ProtobufCAllocator *allocator)
 {
   if(!message)
     return;
-  assert(message->base.descriptor == &payload__descriptor);
+  assert(message->base.descriptor == &ircpayload__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-static const ProtobufCFieldDescriptor serverhello__field_descriptors[2] =
+static const ProtobufCFieldDescriptor ircmessage__field_descriptors[1] =
 {
   {
-    "PORT",
+    "dfhkey",
     1,
-    PROTOBUF_C_LABEL_NONE,
-    PROTOBUF_C_TYPE_INT32,
-    0,   /* quantifier_offset */
-    offsetof(SERVERHELLO, port),
-    NULL,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "ip",
-    2,
     PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_STRING,
     0,   /* quantifier_offset */
-    offsetof(SERVERHELLO, ip),
+    offsetof(IRCMessage, dfhkey),
     NULL,
     &protobuf_c_empty_string,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned serverhello__field_indices_by_name[] = {
-  0,   /* field[0] = PORT */
-  1,   /* field[1] = ip */
+static const unsigned ircmessage__field_indices_by_name[] = {
+  0,   /* field[0] = dfhkey */
 };
-static const ProtobufCIntRange serverhello__number_ranges[1 + 1] =
+static const ProtobufCIntRange ircmessage__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 2 }
+  { 0, 1 }
 };
-const ProtobufCMessageDescriptor serverhello__descriptor =
+const ProtobufCMessageDescriptor ircmessage__descriptor =
 {
   PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "SERVERHELLO",
-  "SERVERHELLO",
-  "SERVERHELLO",
+  "IRCMessage",
+  "IRCMessage",
+  "IRCMessage",
   "",
-  sizeof(SERVERHELLO),
-  2,
-  serverhello__field_descriptors,
-  serverhello__field_indices_by_name,
-  1,  serverhello__number_ranges,
-  (ProtobufCMessageInit) serverhello__init,
+  sizeof(IRCMessage),
+  1,
+  ircmessage__field_descriptors,
+  ircmessage__field_indices_by_name,
+  1,  ircmessage__number_ranges,
+  (ProtobufCMessageInit) ircmessage__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor payload__field_descriptors[2] =
+static const ProtobufCFieldDescriptor ircpayload__field_descriptors[2] =
 {
   {
-    "mtype",
+    "data",
     1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(IRCPayload, data),
+    &ircmessage__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "mtype",
+    2,
     PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_ENUM,
     0,   /* quantifier_offset */
-    offsetof(Payload, mtype),
+    offsetof(IRCPayload, mtype),
     &message_type__descriptor,
     NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
-  {
-    "serverhello",
-    2,
-    PROTOBUF_C_LABEL_NONE,
-    PROTOBUF_C_TYPE_MESSAGE,
-    0,   /* quantifier_offset */
-    offsetof(Payload, serverhello),
-    &serverhello__descriptor,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
 };
-static const unsigned payload__field_indices_by_name[] = {
-  0,   /* field[0] = mtype */
-  1,   /* field[1] = serverhello */
+static const unsigned ircpayload__field_indices_by_name[] = {
+  0,   /* field[0] = data */
+  1,   /* field[1] = mtype */
 };
-static const ProtobufCIntRange payload__number_ranges[1 + 1] =
+static const ProtobufCIntRange ircpayload__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 2 }
 };
-const ProtobufCMessageDescriptor payload__descriptor =
+const ProtobufCMessageDescriptor ircpayload__descriptor =
 {
   PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "Payload",
-  "Payload",
-  "Payload",
+  "IRCPayload",
+  "IRCPayload",
+  "IRCPayload",
   "",
-  sizeof(Payload),
+  sizeof(IRCPayload),
   2,
-  payload__field_descriptors,
-  payload__field_indices_by_name,
-  1,  payload__number_ranges,
-  (ProtobufCMessageInit) payload__init,
+  ircpayload__field_descriptors,
+  ircpayload__field_indices_by_name,
+  1,  ircpayload__number_ranges,
+  (ProtobufCMessageInit) ircpayload__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
 static const ProtobufCEnumValue message_type__enum_values_by_number[4] =
 {
-  { "MSG_TYPE_SERVER_HELLO", "MESSAGE_TYPE__MSG_TYPE_SERVER_HELLO", 0 },
-  { "MSG_TYPE_CLIENT_HELLO", "MESSAGE_TYPE__MSG_TYPE_CLIENT_HELLO", 1 },
-  { "MSG_TYPE_RELAY_MESSSAGE", "MESSAGE_TYPE__MSG_TYPE_RELAY_MESSSAGE", 2 },
-  { "MSG_TYPE_USER_LIST", "MESSAGE_TYPE__MSG_TYPE_USER_LIST", 3 },
+  { "clienthello", "MESSAGE_TYPE__clienthello", 0 },
+  { "serverhello", "MESSAGE_TYPE__serverhello", 1 },
+  { "userlist", "MESSAGE_TYPE__userlist", 2 },
+  { "relaymessage", "MESSAGE_TYPE__relaymessage", 3 },
 };
 static const ProtobufCIntRange message_type__value_ranges[] = {
 {0, 0},{0, 4}
 };
 static const ProtobufCEnumValueIndex message_type__enum_values_by_name[4] =
 {
-  { "MSG_TYPE_CLIENT_HELLO", 1 },
-  { "MSG_TYPE_RELAY_MESSSAGE", 2 },
-  { "MSG_TYPE_SERVER_HELLO", 0 },
-  { "MSG_TYPE_USER_LIST", 3 },
+  { "clienthello", 0 },
+  { "relaymessage", 3 },
+  { "serverhello", 1 },
+  { "userlist", 2 },
 };
 const ProtobufCEnumDescriptor message_type__descriptor =
 {

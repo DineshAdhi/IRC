@@ -1,18 +1,17 @@
 syntax="proto3";
 
 enum MessageType {
-    MSG_TYPE_SERVER_HELLO = 0;
-    MSG_TYPE_CLIENT_HELLO = 1;
-    MSG_TYPE_USER_LIST = 3;
-    MSG_TYPE_RELAY_MESSSAGE = 2;
+    clienthello = 0;
+    serverhello = 1;
+    userlist = 2;
+    relaymessage = 3;
 }
 
-message SERVERHELLO {
-    String DFH_PUBLIC_KEY = 1;
-    String sessionId = 2;
+message IRCMessage {
+    string dfhkey = 1;
 }
 
-message Payload {
-    MessageType mtype = 1;
-    SERVERHELLO serverhello = 2;
+message IRCPayload {
+    IRCMessage data= 1;
+    MessageType mtype = 2; 
 }

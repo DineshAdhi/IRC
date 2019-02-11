@@ -15,7 +15,7 @@ int main()
         initializeIRCServer();
         struct sockaddr_in *addr = getserversockAddr();
         serverfd = createSocket();
-        int maxfd = serverfd;
+        int i, maxfd = serverfd;
         fd_set read_fds, write_fds, except_fds;
         
         bindsocket(serverfd, *addr);
@@ -25,15 +25,15 @@ int main()
        
         while(TRUE)
         {
-    
-                maxfd = preparefds_server(serverfd, &read_fds, &write_fds, &except_fds, client);
+                maxfd = preparefds_server(serverfd, &read_fds, &write_fds, &except_fds);
 
-                int activity = select(maxfd + 1, &read_fds, &write_fds, &except_fds, NULL);
+                int activity = select(maxfd, &read_fds, &write_fds, &except_fds, NULL);
 
                 switch(activity)
                 {
                        case -1:
                            perror("select()");
+                           exit(1);
                            break;
                        
                        case 0:
@@ -42,14 +42,41 @@ int main()
 
                         default:
 
-                            if(FD_ISSET(STDIN_FILENO, &read_fds))
-                            {                                  
-                                   handle_data_from_stdin();
-                            }
-
                             if(FD_ISSET(serverfd, &read_fds))
                             {
                                    int remotefd = handle_incoming_connection(serverfd);
+                            }
+
+                            for(i=0; i<maxfd; i++)
+                            {
+                                    int cfd = conns[i].fd;
+
+                                    if(conns[i].fd == NO_FD)
+                                    {
+                                            continue;
+                                    }
+
+                                    if(FD_ISSET(cfd, &read_fds))
+                                    {
+                                            if(conns[i].registered != REGISTERED || conns[i].payload == NULL)
+                                            {
+                                                    deregisterClient(&conns[i]);
+                                                    continue;
+                                            }
+                                        
+                                            handle_io_server(i, cfd);
+                                    }
+
+                                    if(FD_ISSET(cfd, &write_fds))
+                                    {
+                                            if(conns[i].registered != REGISTERED || conns[i].payload == NULL)
+                                            {
+                                                    deregisterClient(&conns[i]);
+                                                    continue;
+                                            }
+
+                                            handle_io_server(i, cfd);
+                                    }
                             }
                 }
         }

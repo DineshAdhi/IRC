@@ -30,32 +30,62 @@ int handle_incoming_connection(int serverfd)
         char *clientip = (char *) calloc(100, sizeof(char));
         int port;
 
-        extract_client_info(clientaddr, clientip, &port);
+        extract_addr_info(clientaddr, clientip, &port);
+        registerClient(clientip, port, remotefd);
 
-        log_info("[INCOMING CONNECTION][ASSIGNED FD - %d][IP - %s][PORT - %d]", remotefd, clientip, port);
-        
         return remotefd;
 }
 
-void handle_data_from_stdin()
+void handle_io_server(int id, int cfd)
 {
-        char *stdinbuffer = (char *) calloc(MAX_STDIN_INPUT, sizeof(char));
-        int bytes = read(STDIN_FILENO, stdinbuffer, MAX_STDIN_INPUT);
+        Connection *c = &conns[id];
 
-        Payload pload = PAYLOAD__INIT;
-        pload.mtype = MESSAGE_TYPE__MSG_TYPE_SERVER_HELLO;
-        
-        SERVERHELLO shello = SERVERHELLO__INIT;
-        shello.ip = stdinbuffer;
-        shello.port = 4321;
+        switch(c->stage)
+        {
+                case MESSAGE_TYPE__clienthello:
+                {
+                        if(readconnection(c, MESSAGE_TYPE__serverhello) == SUCCESS)
+                        {
+                                c->oppdfhkey = (uint8_t *) c->payload->data->dfhkey;
+                                log_debug("[OPP DFH KEY]"); printKey(c->oppdfhkey);
+                                c->sharedkey = resolveDFHKey(c->randomkey, c->oppdfhkey);
+                                log_debug("[SERVER SHARED KEY]"); printKey(c->sharedkey);
+                                c->stage = MESSAGE_TYPE__serverhello;
+                                c->writable = WRITABLE;
+                                break;
+                        }
+                        else 
+                        {
+                                log_error("[IRCSERVER][ERROR WHILE READING FROM CONNECTION]");
+                                deregisterClient(c);
+                        }
+                }
+                
+                case MESSAGE_TYPE__serverhello: 
+                {
+                        IRCMessage *ircmessage = (IRCMessage *) calloc(1, sizeof(IRCMessage));
+                        ircmessage__init(ircmessage);
+                        ircmessage->dfhkey = (char *)createDFHKey(c->randomkey);
+                        log_debug("[SERVER RANDOM KEY]"); printKey((uint8_t *)ircmessage->dfhkey);
+                        c->stage = UNKNOWN_STAGE;
 
-        pload.serverhello = &shello;
+                        wrapConnection(c, ircmessage);
 
-        int len = payload__get_packed_size(&pload);
+                        if(writeconnection(c, MESSAGE_TYPE__serverhello) == SUCCESS)
+                        {
+                                
+                        }
+                        else 
+                        {
+                                log_error("[IRCSERVER][ERROR WHILE WRITING TO CONNECTION]");
+                                deregisterClient(c);
+                        }
+                        
+                        break;
+                }
 
-        uint8_t buffer[len];
-
-        payload__pack(&pload, buffer);
-        
-        write(serverfd+1, buffer, len);
+                default: 
+                        //log_info("[%s][HANDSHAKE EXCEPTION][UNKNOWN STAGE]", c->fd);
+                        break;
+        }
 }
