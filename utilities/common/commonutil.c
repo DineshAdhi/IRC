@@ -39,14 +39,14 @@ int GENERATE_RANDOM()
         return r % RANDOMLEN;
 }
 
-void printKey(uint8_t *key)
+void printKey(uint8_t *key, int len)
 {
         int i;
 
-        char *hash = (char *) calloc(KEYLENGTH, 2);
+        char *hash = (char *) calloc(len, 2);
         int itr = 0;
 
-        for(i=0; i<KEYLENGTH * 2; i=i+2)
+        for(i=0; i<len * 2; i=i+2)
         {
                 printf("%02X ", key[itr++]);
                 fflush(stdout);
@@ -152,14 +152,25 @@ uint8_t *resolveDFHKey(uint8_t *secretkey, uint8_t *publickey)
 
 int readconnection(Connection *c, MessageType mtype)
 {
-        uint8_t *buffer = (uint8_t *) calloc(MAX_DATA_LENGTH, sizeof(uint8_t)); 
+        c->buffer = (uint8_t *) calloc(MAX_DATA_LENGTH, sizeof(uint8_t)); 
 
-        c->len = read(c->fd, buffer, MAX_DATA_LENGTH);
-        c->payload = ircpayload__unpack(NULL, c->len, buffer);
+        c->len = read(c->fd, c->buffer, MAX_DATA_LENGTH);
+
+        if(c->secure == SECURE)
+        {
+                c->aeswrapper->hash = c->buffer;
+                c->aeswrapper->length = c->len;
+                wrapper_aes256_decrypt(c->aeswrapper);
+                c->buffer = c->aeswrapper->plain;
+
+                printKey(c->buffer, c->len);
+        }
+
+        c->payload = ircpayload__unpack(NULL, c->len, c->buffer);
 
         if(c->payload == NULL)
         {
-                log_info("[%s][EXCEPTION WHILE READING]", c->sid);
+                log_info("[%s][EXCEPTION WHILE READING][PAYLOAD_NULL]", c->sid);
                 return FAILURE;
         }
 
@@ -184,25 +195,25 @@ int readconnection(Connection *c, MessageType mtype)
         return SUCCESS;
 }
 
-int writeconnection(Connection *c, MessageType mtype)
+int writeconnection(Connection *c)
 {
-        if(c->payload == NULL)
-        {
-                log_info("[IRCPAYLOAD IS NULL]");
-                return FAILURE;
-        }
+        // if(c->payload == NULL)
+        // {
+        //         log_info("[IRCPAYLOAD IS NULL]");
+        //         return FAILURE;
+        // }
 
-        if(c->stage != c->payload->mtype)
-        {
-                log_info("[IRCPAYLOAD NOT WRAPPED PROPERLY]");
-                return FAILURE;
-        }
+        // if(c->stage != c->payload->mtype)
+        // {
+        //         log_info("[IRCPAYLOAD NOT WRAPPED PROPERLY]");
+        //         return FAILURE;
+        // }
 
-        c->len = ircpayload__get_packed_size(c->payload);
-        uint8_t *buffer = (uint8_t *) calloc(c->len, sizeof(uint8_t));
-        ircpayload__pack(c->payload, buffer);
+        // c->len = ircpayload__get_packed_size(c->payload);
+        // uint8_t *buffer = (uint8_t *) calloc(c->len, sizeof(uint8_t));
+        // ircpayload__pack(c->payload, buffer);
 
-        if( write(c->fd, buffer, c->len) < 0 )
+        if( write(c->fd, c->buffer, c->len) < 0 )
         {
                 log_info("[EXCEPTION WHILE WRITING TO CONNECTION]");
                 return FAILURE;
@@ -211,6 +222,7 @@ int writeconnection(Connection *c, MessageType mtype)
         c->writable = NOT_WRITABLE;
 
         free(c->payload);
+        free(c->buffer);
         
         return SUCCESS;
 }
@@ -222,4 +234,21 @@ void wrapConnection(Connection *c, IRCMessage *data)
         
         c->payload->data = data;
         c->payload->mtype = c->stage;
+
+        c->len = ircpayload__get_packed_size(c->payload);
+        c->buffer = (uint8_t *) calloc(c->len, sizeof(uint8_t));
+        ircpayload__pack(c->payload, c->buffer);
+
+
+        if(c->secure == SECURE)
+        {
+                c->aeswrapper->plain = c->buffer;
+                c->aeswrapper->length = c->len;
+
+                printKey(c->buffer, c->len);
+
+                wrapper_aes256_encrypt(c->aeswrapper);
+
+                c->buffer = c->aeswrapper->hash;
+        }
 }

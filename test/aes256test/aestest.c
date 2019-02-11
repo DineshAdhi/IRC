@@ -4,13 +4,30 @@
 #include "../../utilities/crypto/aes256.h"
 #include "../../utilities/crypto/base64.h"
 
+void print(uint8_t *key, int len)
+{
+        int i;
+
+        char *hash = (char *) calloc(len, 2);
+        int itr = 0;
+
+        for(i=0; i<len * 2; i=i+2)
+        {
+                fprintf(stderr, "%02X ", key[itr++]);
+                fflush(stdo);
+        }
+
+        printf("\n");
+        fflush(stderr);
+}
+
 int main()
 {
     int i;
 
     char *key = "qwertyuiopasdfghjklzxcvbnmqwerty";
 
-    char *secret = "asdfasdfasdfasdf";
+    char *secret = "qwerwertyjmgnfbdvcsx";
     int len = strlen(secret);
 
     AES_WRAPPER *w = ini_aes256_wrapper((uint8_t *)key);
@@ -26,7 +43,6 @@ int main()
         printf("%d ", w->hash[i]);
     }
 
- 
     printf("\n HEX : %s", w->hex);
     printf("\n BASE 64 : %s", w->base64);
     printf("\n Decrypt : %s", w->plain);

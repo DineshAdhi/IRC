@@ -1,3 +1,5 @@
+#ifndef AES256_H
+#define AES256_H
 #include<stdlib.h>
 
 #define Nr 14
@@ -73,3 +75,5 @@ uint8_t* aes256_encrypt(AES_CTX *ctx, uint8_t *plain, size_t length);
 uint8_t* aes256_decrypt(AES_CTX *ctx, uint8_t *hash, size_t length);
 void wrapper_aes256_encrypt(AES_WRAPPER *w);
 void wrapper_aes256_decrypt(AES_WRAPPER *w);
+
+#endif

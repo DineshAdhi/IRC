@@ -11,6 +11,7 @@
 #include<time.h>
 
 #include "../../protobufs/payload.pb-c.h"
+#include "../../utilities/crypto/aes256.h"
 
 #define URANDOM_FILE "/dev/urandom"
 
@@ -28,7 +29,7 @@
 #define PROTOCOL IPPROTO_TCP
 
 #define RANDOMLEN 61
-#define KEYLENGTH 64
+#define KEYLENGTH 32
 #define SIDLENGTH 16 + 1 // 16 Digits + 1 for Null
 
 #define DFH_G 2
@@ -51,6 +52,8 @@ typedef struct {
     uint8_t *sharedkey;
     uint8_t *randomkey;
     uint8_t *oppdfhkey;
+    uint8_t *securekey;
+    AES_WRAPPER *aeswrapper;
     char *ip;
     int port;
     char *sid;
@@ -59,6 +62,7 @@ typedef struct {
     int registered;
     int secure;
     int writable;
+    uint8_t *buffer;
     size_t len;
     IRCPayload *payload;
     MessageType stage;
@@ -71,13 +75,13 @@ char *createSessionId();
 uint8_t *createRandomKey();
 uint8_t *createDFHKey(uint8_t *key);
 int readconnection(Connection *c, MessageType mtype);
-int writeconnection(Connection *c, MessageType mtype);
+int writeconnection(Connection *c);
 void wrapConnection(Connection *c, IRCMessage *data);
 int bindsocket(int fd, struct sockaddr_in address_in);
 uint8_t *resolveDFHKey(uint8_t *secretkey, uint8_t *publickey);
 void extract_addr_info(struct sockaddr_in clientaddr, char *ip, int *port);
 int generateRandom();
 void initializeCommonUtils();
-void printKey(uint8_t *key);
+void printKey(uint8_t *key, int len);
 
 #endif

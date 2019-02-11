@@ -8,6 +8,7 @@
 #include "../logger/log.h"
 #include "serverhandler.h"
 #include "serverutil.h"
+#include"../crypto/aes256.h"
 #include "../common/commonutil.h"
 #include "../../protobufs/payload.pb-c.h"
 
@@ -47,16 +48,15 @@ void handle_io_server(int id, int cfd)
                         if(readconnection(c, MESSAGE_TYPE__serverhello) == SUCCESS)
                         {
                                 c->oppdfhkey = (uint8_t *) c->payload->data->dfhkey;
-                                log_debug("[OPP DFH KEY]"); printKey(c->oppdfhkey);
                                 c->sharedkey = resolveDFHKey(c->randomkey, c->oppdfhkey);
-                                log_debug("[SERVER SHARED KEY]"); printKey(c->sharedkey);
+                                log_debug("[%s][SERVER SHARED KEY]", c->sid); printKey(c->sharedkey, KEYLENGTH);
                                 c->stage = MESSAGE_TYPE__serverhello;
                                 c->writable = WRITABLE;
                                 break;
                         }
                         else 
                         {
-                                log_error("[IRCSERVER][ERROR WHILE READING FROM CONNECTION]");
+                                log_error("[%s][ERROR WHILE READING FROM CONNECTION]", c->sid);
                                 deregisterClient(c);
                         }
                 }
@@ -66,23 +66,44 @@ void handle_io_server(int id, int cfd)
                         IRCMessage *ircmessage = (IRCMessage *) calloc(1, sizeof(IRCMessage));
                         ircmessage__init(ircmessage);
                         ircmessage->dfhkey = (char *)createDFHKey(c->randomkey);
-                        log_debug("[SERVER RANDOM KEY]"); printKey((uint8_t *)ircmessage->dfhkey);
-                        c->stage = UNKNOWN_STAGE;
+                        c->stage = MESSAGE_TYPE__keyexchange;
 
                         wrapConnection(c, ircmessage);
 
-                        if(writeconnection(c, MESSAGE_TYPE__serverhello) == SUCCESS)
+                        if(writeconnection(c) == SUCCESS)
                         {
                                 
                         }
                         else 
                         {
-                                log_error("[IRCSERVER][ERROR WHILE WRITING TO CONNECTION]");
+                                log_error("[%s][ERROR WHILE WRITING TO CONNECTION]", c->sid);
                                 deregisterClient(c);
                         }
-                        
+
                         break;
                 }
+
+                case MESSAGE_TYPE__keyexchange: 
+                {
+                        c->aeswrapper = ini_aes256_wrapper(c->sharedkey);
+                        c->secure = SECURE;
+                        c->stage = MESSAGE_TYPE__unknownstage;
+
+                        if(readconnection(c, MESSAGE_TYPE__unknownstage) == SUCCESS)
+                        {
+                                log_debug("READ KEY EXCHANGE SUCCESSFULLY");
+                        }
+                        else 
+                        {
+                                log_error("[%s][ERROR DURING KEY EXCHANGE]", c->sid);
+                                deregisterClient(c);
+                        }
+
+                        break;
+                }
+
+                case MESSAGE_TYPE__unknownstage:
+                        break;
 
                 default: 
                         //log_info("[%s][HANDSHAKE EXCEPTION][UNKNOWN STAGE]", c->fd);

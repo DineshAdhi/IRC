@@ -2,14 +2,38 @@
 #include <stdlib.h>
 #include "amessage.pb-c.h"
 
+#include "../../utilities/crypto/aes256.h"
+
+void print(uint8_t *key, int len)
+{
+        int i;
+
+        char *hash = (char *) calloc(len, 2);
+        int itr = 0;
+
+
+
+        for(i=0; i<len * 2; i=i+2)
+        {
+                fprintf(stderr, "%02X ", key[itr++]);
+                fflush(stderr);
+        }
+
+        fprintf(stderr, "\n");
+        fflush(stderr);
+}
+
 int main (int argc, const char * argv[]) 
 {
-  AMessage msg = AMESSAGE__INIT; // AMessage
-  void *buf;                     // Buffer to store serialized data
-  unsigned len;                  // Length of serialized data
+  AMessage msg = AMESSAGE__INIT; 
+  void *buf;                     
+  unsigned len;            
+
+  char *key = "asdfasdfasdfasdfasdfasdfasdfasdf";  
+  AES_WRAPPER *w = ini_aes256_wrapper((uint8_t *)key);    
   
   if (argc != 2 && argc != 3)
-  {   // Allow one or two integers
+  {   
     fprintf(stderr,"usage: amessage a [b]\n");
     return 1;
   }
@@ -20,10 +44,17 @@ int main (int argc, const char * argv[])
   
   buf = malloc(len);
   amessage__pack(&msg,buf);
+
+  w->plain = buf;
+  w->length = len;
+  wrapper_aes256_encrypt(w);
+
+  print(w->plain, w->length);
   
-  fprintf(stderr,"Writing %d serialized bytes\n",len); // See the length of message
-  fwrite(buf,len,1,stdout); // Write to stdout to allow direct command line piping
+  fprintf(stderr,"Writing %d serialized bytes\n",len); 
+  fflush(stderr);
+  fwrite(w->hash,w->length,1,stdout); 
   
-  free(buf); // Free the allocated serialized buffer
+  free(buf); 
   return 0;
 }
