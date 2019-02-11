@@ -85,13 +85,14 @@ void handle_io_server(int id, int cfd)
 
                 case MESSAGE_TYPE__keyexchange: 
                 {
-                        c->aeswrapper = ini_aes256_wrapper(c->sharedkey);
+                        c->aeswrapper = init_aes256_wrapper(c->sharedkey);
                         c->secure = SECURE;
                         c->stage = MESSAGE_TYPE__unknownstage;
 
                         if(readconnection(c, MESSAGE_TYPE__unknownstage) == SUCCESS)
                         {
                                 log_debug("READ KEY EXCHANGE SUCCESSFULLY");
+                                printKey((uint8_t *)c->payload->data->sharedkey, c->len);
                         }
                         else 
                         {

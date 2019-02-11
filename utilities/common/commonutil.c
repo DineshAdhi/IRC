@@ -162,8 +162,6 @@ int readconnection(Connection *c, MessageType mtype)
                 c->aeswrapper->length = c->len;
                 wrapper_aes256_decrypt(c->aeswrapper);
                 c->buffer = c->aeswrapper->plain;
-
-                printKey(c->buffer, c->len);
         }
 
         c->payload = ircpayload__unpack(NULL, c->len, c->buffer);
@@ -197,22 +195,6 @@ int readconnection(Connection *c, MessageType mtype)
 
 int writeconnection(Connection *c)
 {
-        // if(c->payload == NULL)
-        // {
-        //         log_info("[IRCPAYLOAD IS NULL]");
-        //         return FAILURE;
-        // }
-
-        // if(c->stage != c->payload->mtype)
-        // {
-        //         log_info("[IRCPAYLOAD NOT WRAPPED PROPERLY]");
-        //         return FAILURE;
-        // }
-
-        // c->len = ircpayload__get_packed_size(c->payload);
-        // uint8_t *buffer = (uint8_t *) calloc(c->len, sizeof(uint8_t));
-        // ircpayload__pack(c->payload, buffer);
-
         if( write(c->fd, c->buffer, c->len) < 0 )
         {
                 log_info("[EXCEPTION WHILE WRITING TO CONNECTION]");
@@ -239,15 +221,12 @@ void wrapConnection(Connection *c, IRCMessage *data)
         c->buffer = (uint8_t *) calloc(c->len, sizeof(uint8_t));
         ircpayload__pack(c->payload, c->buffer);
 
-
         if(c->secure == SECURE)
         {
                 c->aeswrapper->plain = c->buffer;
                 c->aeswrapper->length = c->len;
 
-                printKey(c->buffer, c->len);
-
-                wrapper_aes256_encrypt(c->aeswrapper);
+                c->len = wrapper_aes256_encrypt(c->aeswrapper);
 
                 c->buffer = c->aeswrapper->hash;
         }

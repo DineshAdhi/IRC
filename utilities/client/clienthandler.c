@@ -99,7 +99,7 @@ int handle_io_client()
                   msg->sharedkey =(char *) serverconn->sharedkey;
                   
                   serverconn->secure = SECURE;
-                  serverconn->aeswrapper = ini_aes256_wrapper(serverconn->sharedkey);
+                  serverconn->aeswrapper = init_aes256_wrapper(serverconn->sharedkey);
                   serverconn->stage = MESSAGE_TYPE__unknownstage;
                   wrapConnection(serverconn, msg);
 

@@ -69,11 +69,11 @@ static const uint8_t rsbox[256] = {
   0xa0, 0xe0, 0x3b, 0x4d, 0xae, 0x2a, 0xf5, 0xb0, 0xc8, 0xeb, 0xbb, 0x3c, 0x83, 0x53, 0x99, 0x61,
   0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d };
 
-AES_CTX *init_aes356_ctx(uint8_t *key);
-AES_WRAPPER* ini_aes256_wrapper(uint8_t *key);
+AES_CTX *init_aes256_ctx(uint8_t *key);
+AES_WRAPPER* init_aes256_wrapper(uint8_t *key);
 uint8_t* aes256_encrypt(AES_CTX *ctx, uint8_t *plain, size_t length);
 uint8_t* aes256_decrypt(AES_CTX *ctx, uint8_t *hash, size_t length);
-void wrapper_aes256_encrypt(AES_WRAPPER *w);
-void wrapper_aes256_decrypt(AES_WRAPPER *w);
+int wrapper_aes256_encrypt(AES_WRAPPER *w);
+int wrapper_aes256_decrypt(AES_WRAPPER *w);
 
 #endif

@@ -20,7 +20,7 @@
 #define PORT 4321
 
 #define MAX_STDIN_INPUT 1024
-#define MAX_DATA_LENGTH 1024
+#define MAX_DATA_LENGTH 10240
 #define SUCCESS 1
 #define FAILURE -1
 
