@@ -63,7 +63,7 @@ void handle_io_server(int id, int cfd)
                 
                 case MESSAGE_TYPE__serverhello: 
                 {
-                        IRCMessage *ircmessage = (IRCMessage *) malloc(1);
+                        IRCMessage *ircmessage = (IRCMessage *) calloc(1, sizeof(IRCMessage));
                         ircmessage__init(ircmessage);
                         ircmessage->dfhkey = (char *)createDFHKey(c->randomkey);
                         log_debug("[SERVER RANDOM KEY]"); printKey((uint8_t *)ircmessage->dfhkey);
@@ -80,7 +80,7 @@ void handle_io_server(int id, int cfd)
                                 log_error("[IRCSERVER][ERROR WHILE WRITING TO CONNECTION]");
                                 deregisterClient(c);
                         }
-                
+                        
                         break;
                 }
 

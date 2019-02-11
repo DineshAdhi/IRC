@@ -43,7 +43,7 @@ void printKey(uint8_t *key)
 {
         int i;
 
-        char *hash = (char *) malloc(KEYLENGTH * 2);
+        char *hash = (char *) calloc(KEYLENGTH, 2);
         int itr = 0;
 
         for(i=0; i<KEYLENGTH * 2; i=i+2)
@@ -210,12 +210,14 @@ int writeconnection(Connection *c, MessageType mtype)
 
         c->writable = NOT_WRITABLE;
 
+        free(c->payload);
+        
         return SUCCESS;
 }
 
 void wrapConnection(Connection *c, IRCMessage *data)
 {
-        c->payload = (IRCPayload *) malloc(sizeof(IRCPayload));
+        c->payload = (IRCPayload *) calloc(1, sizeof(IRCPayload));
         ircpayload__init(c->payload);
         
         c->payload->data = data;
