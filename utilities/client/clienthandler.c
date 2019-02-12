@@ -100,13 +100,12 @@ int handle_io_client()
                   
                   serverconn->secure = SECURE;
                   serverconn->aeswrapper = init_aes256_wrapper(serverconn->sharedkey);
-                  serverconn->stage = MESSAGE_TYPE__unknownstage;
+                  serverconn->stage = MESSAGE_TYPE__handshakedone;
                   wrapConnection(serverconn, msg);
 
                   if(writeconnection(serverconn) == SUCCESS)
                   {
-                        serverconn->writable = NOT_WRITABLE;
-                        log_debug("[KEY EXCHANGE SWITCH CASE HANDLED]");
+                        log_debug("[SHARED KEY EXCHANGE DONE]");
                   }
                   else 
                   {
@@ -117,11 +116,33 @@ int handle_io_client()
                   break;
             }
 
-            case MESSAGE_TYPE__unknownstage:
+            case MESSAGE_TYPE__handshakedone: 
+            {
+                  if(readconnection(serverconn, MESSAGE_TYPE__unknownstage) == SUCCESS)
+                  {
+                        serverconn->securekey = (uint8_t *) serverconn->payload->data->securekey;
+                        log_debug("[RECEIVED MASTER SECRET]");
+                        printKey(serverconn->securekey, KEYLENGTH);
+                  }
+                  else 
+                  {
+                        log_error("[ERROR WHILE READING FROM CONNECTION]");
+                        deregisterServer();
+                  }
                   break;
+            }
+
+            case MESSAGE_TYPE__unknownstage:
+            {
+                  log_debug("UNKNOWN SWITCH INVOKED");
+                  break;
+            }
 
             default:
+            {
+                  log_debug("DEFAULT SWITCH INVOKED");
                   break;
+            }
       }
       
       return SUCCESS;

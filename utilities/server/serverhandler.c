@@ -73,7 +73,7 @@ void handle_io_server(int id, int cfd)
 
                         if(writeconnection(c) == SUCCESS)
                         {
-                                c->writable = NOT_WRITABLE;
+
                         }
                         else 
                         {
@@ -88,12 +88,13 @@ void handle_io_server(int id, int cfd)
                 {
                         c->aeswrapper = init_aes256_wrapper(c->sharedkey);
                         c->secure = SECURE;
-                        c->stage = MESSAGE_TYPE__unknownstage;
+                        c->stage = MESSAGE_TYPE__handshakedone;
 
-                        if(readconnection(c, MESSAGE_TYPE__unknownstage) == SUCCESS)
+                        if(readconnection(c, MESSAGE_TYPE__handshakedone) == SUCCESS)
                         {
                                 if(verifySharedKey(c) == SUCCESS)
                                 {
+                                        c->writable = WRITABLE;
                                         log_debug("[%s][SHARED KEY VERIFICATION SUCCESS]", c->sid);
                                 }
                                 else 
@@ -113,11 +114,37 @@ void handle_io_server(int id, int cfd)
                         break;
                 }
 
+                case MESSAGE_TYPE__handshakedone:
+                {
+                        c->securekey = createAESKey();
+                        
+                        IRCMessage *ircmessage = (IRCMessage *) calloc(1, sizeof(IRCMessage));
+                        ircmessage__init(ircmessage);
+                        ircmessage->securekey = (char *) c->securekey;
+                        c->stage = MESSAGE_TYPE__unknownstage;
+
+                        wrapConnection(c, ircmessage);
+
+                        if(writeconnection(c) == SUCCESS)
+                        {
+                                c->aeswrapper = init_aes256_wrapper((uint8_t *)c->securekey);
+                                log_debug("[SHARED MASTER SECRET]");
+                                printKey(c->securekey, KEYLENGTH);
+                        }
+                        else 
+                        {
+                                log_error("[%s][ERROR WHILE WRITING TO CONNECTION]", c->sid);  
+                                deregisterClient(c);
+                        }
+
+                        break;
+                }
+
                 case MESSAGE_TYPE__unknownstage:
                         break;
 
                 default: 
-                        //log_info("[%s][HANDSHAKE EXCEPTION][UNKNOWN STAGE]", c->fd);
+                        log_info("[%s][HANDSHAKE EXCEPTION][UNKNOWN STAGE]", c->fd);
                         break;
         }
 }

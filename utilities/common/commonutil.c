@@ -113,11 +113,25 @@ uint8_t *createRandomKey()
 
         uint8_t *key = (uint8_t *)calloc(KEYLENGTH, sizeof(uint8_t));
 
-
         for(i=0; i<KEYLENGTH; i++)
         {
                 int r = GENERATE_RANDOM();
                 key[i] = (uint8_t) RAND[r] % DFHLIMIT;
+        }
+        
+        return key;
+}
+
+uint8_t *createAESKey()
+{
+        int i;
+
+        uint8_t *key = (uint8_t *)calloc(KEYLENGTH, sizeof(uint8_t));
+
+        for(i=0; i<KEYLENGTH; i++)
+        {
+                int r = GENERATE_RANDOM();
+                key[i] = (uint8_t) RAND[r];
         }
         
         return key;
@@ -169,7 +183,6 @@ int readconnection(Connection *c, MessageType mtype)
                 return FAILURE;
         }
 
-
         if(c->len == 0)
         {
                 log_info("[%s][CLIENT DISCONNECTION]", c->sid);
@@ -212,8 +225,8 @@ void wrapConnection(Connection *c, IRCMessage *data)
         c->payload->data = data;
         c->payload->mtype = c->stage;
 
+
         c->len = ircpayload__get_packed_size(c->payload);
-        //c->payload->length = c->len;
 
         c->buffer = (uint8_t *) calloc(c->len, sizeof(uint8_t));
         ircpayload__pack(c->payload, c->buffer);

@@ -45,6 +45,7 @@ int main()
                      {
                               if( handle_io_client() == FAILURE)
                               {
+                                    deregisterServer();
                                     exit(1);
                               }
                      }
@@ -53,8 +54,15 @@ int main()
                      {
                               if( handle_io_client() == FAILURE)
                               {
+                                    deregisterServer();
                                     exit(1);
                               }
+                     }
+
+                     if(FD_ISSET(serverconn->fd, &except_fds))
+                     {
+                           log_debug("[EXCEPTION IN SELECT]");
+                           deregisterServer();
                      }
             }
       }

@@ -92,6 +92,7 @@ static FILE *urandom;
 int createSocket();
 char *createSessionId();
 uint8_t *createRandomKey();
+uint8_t *createAESKey();
 uint8_t *createDFHKey(uint8_t *key);
 int readconnection(Connection *c, MessageType mtype);
 int writeconnection(Connection *c);

@@ -7,9 +7,9 @@
 #include<signal.h>
 #include<netdb.h>
 
-#include"../common/commonutil.h"
-#include"../logger/log.h"
-#include"clientutil.h"
+#include"../../include/commonutil.h"
+#include"../../include/log.h"
+#include"../../include/clientutil.h"
 
 void terminateClient()
 {
