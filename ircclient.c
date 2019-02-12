@@ -5,10 +5,10 @@
 #include<sys/time.h>
 #include<unistd.h>
 
-#include"utilities/client/clientutil.h"
-#include"utilities/client/clienthandler.h"
-#include"utilities/logger/log.h"
-#include"utilities/common/commonutil.h"
+#include"include/clientutil.h"
+#include"include/clienthandler.h"
+#include"include/log.h"
+#include"include/commonutil.h"
 
 int main()
 {

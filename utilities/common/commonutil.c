@@ -11,9 +11,10 @@
 #include<fcntl.h>
 
 #include"../../protobufs/payload.pb-c.h"
-#include "commonutil.h"
-#include "../server/serverutil.h"
-#include "../logger/log.h"
+#include "../../include/commonutil.h"
+#include "../../include/serverutil.h"
+#include "../../include/log.h"
+#include "../../include/aes256.h"
 
 char RAND[63] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
 char SID[10] = "1234567890";
@@ -153,15 +154,11 @@ uint8_t *resolveDFHKey(uint8_t *secretkey, uint8_t *publickey)
 int readconnection(Connection *c, MessageType mtype)
 {
         c->buffer = (uint8_t *) calloc(MAX_DATA_LENGTH, sizeof(uint8_t)); 
-
         c->len = read(c->fd, c->buffer, MAX_DATA_LENGTH);
 
         if(c->secure == SECURE)
         {
-                c->aeswrapper->hash = c->buffer;
-                c->aeswrapper->length = c->len;
-                wrapper_aes256_decrypt(c->aeswrapper);
-                c->buffer = c->aeswrapper->plain;
+                conn_wrapper_aes256_decrypt(c);
         }
 
         c->payload = ircpayload__unpack(NULL, c->len, c->buffer);
@@ -178,8 +175,6 @@ int readconnection(Connection *c, MessageType mtype)
                 log_info("[%s][CLIENT DISCONNECTION]", c->sid);
                 return FAILURE;
         }
-
-        log_info("[%s][READ %d FROM CLIENT]", c->sid, c->len);
 
         if(c->secure == NOT_SECURE)
         {
@@ -218,16 +213,13 @@ void wrapConnection(Connection *c, IRCMessage *data)
         c->payload->mtype = c->stage;
 
         c->len = ircpayload__get_packed_size(c->payload);
+        //c->payload->length = c->len;
+
         c->buffer = (uint8_t *) calloc(c->len, sizeof(uint8_t));
         ircpayload__pack(c->payload, c->buffer);
 
         if(c->secure == SECURE)
         {
-                c->aeswrapper->plain = c->buffer;
-                c->aeswrapper->length = c->len;
-
-                c->len = wrapper_aes256_encrypt(c->aeswrapper);
-
-                c->buffer = c->aeswrapper->hash;
+                conn_wrapper_aes256_encrypt(c);
         }
 }

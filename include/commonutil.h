@@ -10,8 +10,7 @@
 #include<signal.h>
 #include<time.h>
 
-#include "../../protobufs/payload.pb-c.h"
-#include "../../utilities/crypto/aes256.h"
+#include "../protobufs/payload.pb-c.h"
 
 #define URANDOM_FILE "/dev/urandom"
 
@@ -45,7 +44,27 @@
 #define NOT_WRITABLE -1
 #define UNKNOWN_STAGE -1
 
+//////////////////////////////  AES Variables
+
+#define AESROUNDKEYLEN 240 
+
 #define DFH(a, b) fmod(pow(a, b), DFH_P)
+
+typedef struct {
+    uint8_t rkey[AESROUNDKEYLEN];
+}AES_CTX;
+
+
+typedef struct {
+    AES_CTX *ctx;
+    uint8_t *plain;
+    size_t length;
+    uint8_t *hash;
+    char *hex;
+    char *base64;
+} AES_WRAPPER;
+
+////////////////////////////
 
 
 typedef struct {

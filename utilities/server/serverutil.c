@@ -7,9 +7,9 @@
 #include<string.h>
 #include<signal.h>
 
-#include"serverutil.h"
-#include"../logger/log.h"
-#include "../common/commonutil.h"
+#include"../../include/serverutil.h"
+#include"../../include/log.h"
+#include "../../include/commonutil.h"
 
 void terminateServer()
 {
@@ -154,6 +154,21 @@ void deregisterClient(Connection *c)
         log_info("[%s][DEREGISTERING CONNECTION][FD - %d][IP - %s][PORT - %d]", c->sid, c->fd, c->ip, c->port);
         close(c->fd);
         c->fd = NO_FD;
+}
+
+int verifySharedKey(Connection *c)
+{
+        int i;
+
+        for(i=0; i<KEYLENGTH; i++)
+        {
+                if(c->sharedkey[i] != c->payload->data->sharedkey[i])
+                {
+                        return FAILURE;
+                }
+        }
+
+        return SUCCESS;
 }
 
 

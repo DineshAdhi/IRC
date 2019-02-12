@@ -3,8 +3,9 @@
 #include<unistd.h>
 #include<string.h>
 
-#include"aes256.h"
-#include"base64.h"
+#include"../../include/aes256.h"
+#include"../../include/base64.h"
+#include"../../include/commonutil.h"
 
 void getRoundkey(uint8_t *Rkey, uint8_t *key)
 {
@@ -374,6 +375,23 @@ int wrapper_aes256_decrypt(AES_WRAPPER *w)
      return w->length;
 }
 
+void conn_wrapper_aes256_encrypt(Connection *c)
+{
+      c->aeswrapper->plain = c->buffer;
+      c->aeswrapper->length = c->len;
+
+      c->len = wrapper_aes256_encrypt(c->aeswrapper);
+      c->buffer = c->aeswrapper->hash;
+}
+
+void conn_wrapper_aes256_decrypt(Connection *c)
+{
+      c->aeswrapper->hash = c->buffer;
+      c->aeswrapper->length = c->len;
+
+      c->len = wrapper_aes256_decrypt(c->aeswrapper);
+      c->buffer = c->aeswrapper->plain;
+}
 
 
 

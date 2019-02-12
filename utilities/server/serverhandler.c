@@ -5,11 +5,11 @@
 #include<unistd.h>
 #include<string.h>
 
-#include "../logger/log.h"
-#include "serverhandler.h"
-#include "serverutil.h"
-#include"../crypto/aes256.h"
-#include "../common/commonutil.h"
+#include "../../include/log.h"
+#include "../../include/serverhandler.h"
+#include "../../include/serverutil.h"
+#include"../../include/aes256.h"
+#include "../../include/commonutil.h"
 #include "../../protobufs/payload.pb-c.h"
 
 int handle_incoming_connection(int serverfd)
@@ -52,13 +52,14 @@ void handle_io_server(int id, int cfd)
                                 log_debug("[%s][SERVER SHARED KEY]", c->sid); printKey(c->sharedkey, KEYLENGTH);
                                 c->stage = MESSAGE_TYPE__serverhello;
                                 c->writable = WRITABLE;
-                                break;
                         }
                         else 
                         {
                                 log_error("[%s][ERROR WHILE READING FROM CONNECTION]", c->sid);
                                 deregisterClient(c);
                         }
+
+                        break;
                 }
                 
                 case MESSAGE_TYPE__serverhello: 
@@ -72,7 +73,7 @@ void handle_io_server(int id, int cfd)
 
                         if(writeconnection(c) == SUCCESS)
                         {
-                                
+                                c->writable = NOT_WRITABLE;
                         }
                         else 
                         {
@@ -91,12 +92,21 @@ void handle_io_server(int id, int cfd)
 
                         if(readconnection(c, MESSAGE_TYPE__unknownstage) == SUCCESS)
                         {
-                                log_debug("READ KEY EXCHANGE SUCCESSFULLY");
-                                printKey((uint8_t *)c->payload->data->sharedkey, c->len);
+                                if(verifySharedKey(c) == SUCCESS)
+                                {
+                                        log_debug("[%s][SHARED KEY VERIFICATION SUCCESS]", c->sid);
+                                }
+                                else 
+                                {
+                                        log_debug("[%s][SHARED KEY VERIFICATION FAILED]", c->sid);
+                                        deregisterClient(c);
+                                }
+                                
+                                printKey((uint8_t *)c->payload->data->sharedkey, KEYLENGTH);
                         }
                         else 
                         {
-                                log_error("[%s][ERROR DURING KEY EXCHANGE]", c->sid);
+                                log_error("[%s][ERROR READING CONNECTION DURING KEY EXCHANGE]", c->sid);
                                 deregisterClient(c);
                         }
 

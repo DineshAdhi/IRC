@@ -6,10 +6,10 @@
 #include<unistd.h>
 #include<signal.h>
 
-#include"../common/commonutil.h"
-#include"../crypto/aes256.h"
-#include "clientutil.h"
-#include "../logger/log.h"
+#include"../../include/commonutil.h"
+#include"../../include/aes256.h"
+#include "../../include/clientutil.h"
+#include "../../include/log.h"
 
 void handle_stdin_data()
 {
@@ -105,6 +105,7 @@ int handle_io_client()
 
                   if(writeconnection(serverconn) == SUCCESS)
                   {
+                        serverconn->writable = NOT_WRITABLE;
                         log_debug("[KEY EXCHANGE SWITCH CASE HANDLED]");
                   }
                   else 
