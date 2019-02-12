@@ -37,10 +37,8 @@ int handle_incoming_connection(int serverfd)
         return remotefd;
 }
 
-void handle_io_server(int id, int cfd)
+void handle_io_server_handshake(Connection *c)
 {
-        Connection *c = &conns[id];
-
         switch(c->stage)
         {
                 case MESSAGE_TYPE__clienthello:
@@ -51,11 +49,9 @@ void handle_io_server(int id, int cfd)
                                 c->sharedkey = resolveDFHKey(c->randomkey, c->oppdfhkey);
                                 log_debug("[%s][SERVER SHARED KEY]", c->sid); printKey(c->sharedkey, KEYLENGTH);
                                 c->stage = MESSAGE_TYPE__serverhello;
-                                c->writable = WRITABLE;
                         }
                         else 
                         {
-                                log_error("[%s][ERROR WHILE READING FROM CONNECTION]", c->sid);
                                 deregisterClient(c);
                         }
 
@@ -77,7 +73,6 @@ void handle_io_server(int id, int cfd)
                         }
                         else 
                         {
-                                log_error("[%s][ERROR WHILE WRITING TO CONNECTION]", c->sid);
                                 deregisterClient(c);
                         }
 
@@ -94,7 +89,7 @@ void handle_io_server(int id, int cfd)
                         {
                                 if(verifySharedKey(c) == SUCCESS)
                                 {
-                                        c->writable = WRITABLE;
+                                        
                                         log_debug("[%s][SHARED KEY VERIFICATION SUCCESS]", c->sid);
                                 }
                                 else 
@@ -128,6 +123,7 @@ void handle_io_server(int id, int cfd)
                         if(writeconnection(c) == SUCCESS)
                         {
                                 c->aeswrapper = init_aes256_wrapper((uint8_t *)c->securekey);
+                                c->handshakedone = HANDSHAKE_DONE;
                                 log_debug("[SHARED MASTER SECRET]");
                                 printKey(c->securekey, KEYLENGTH);
                         }
@@ -141,10 +137,23 @@ void handle_io_server(int id, int cfd)
                 }
 
                 case MESSAGE_TYPE__unknownstage:
+                        log_info("[%s][CLIENT DISCONNECTED][FD - %d][ID - %d]", c->sid, c->fd, c->id);
+                        deregisterClient(c);
                         break;
 
                 default: 
                         log_info("[%s][HANDSHAKE EXCEPTION][UNKNOWN STAGE]", c->fd);
                         break;
+        }
+}
+
+void handle_io_server(int id, int cfd)
+{
+        Connection *c = &conns[id];
+
+        if(c->handshakedone == HANDSHAKE_NOT_DONE)
+        {
+                handle_io_server_handshake(c);
+                return;
         }
 }

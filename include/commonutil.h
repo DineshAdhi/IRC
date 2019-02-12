@@ -43,6 +43,8 @@
 #define WRITABLE 1
 #define NOT_WRITABLE -1
 #define UNKNOWN_STAGE -1
+#define HANDSHAKE_DONE 1
+#define HANDSHAKE_NOT_DONE -1
 
 //////////////////////////////  AES Variables
 
@@ -81,6 +83,7 @@ typedef struct {
     int registered;
     int secure;
     int writable;
+    int handshakedone;
     uint8_t *buffer;
     size_t len;
     IRCPayload *payload;

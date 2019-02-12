@@ -46,15 +46,8 @@ int initiateReconnect()
       return FAILURE;
 }
 
-int handle_io_client()
+void handle_io_client_handshake()
 {
-      if(serverconn->registered == NOT_REGISTERED)
-      {
-            log_info("[EXCEPTION WHILE MAKING CONNECTION][CONNECTION NOT REGISTERED");
-            deregisterServer();
-            return FAILURE;
-      }
-
       switch(serverconn->stage)
       {
             case MESSAGE_TYPE__clienthello:
@@ -68,7 +61,6 @@ int handle_io_client()
                   if(writeconnection(serverconn) == FAILURE)
                   {
                         deregisterServer();
-                        exit(1);
                   }
 
                   break;
@@ -89,6 +81,7 @@ int handle_io_client()
                         log_error("[ERROR WHILE READING FROM CONNECTION]");
                         deregisterServer();
                   }
+
                   break;
             }
 
@@ -121,6 +114,8 @@ int handle_io_client()
                   if(readconnection(serverconn, MESSAGE_TYPE__unknownstage) == SUCCESS)
                   {
                         serverconn->securekey = (uint8_t *) serverconn->payload->data->securekey;
+                        serverconn->stage = MESSAGE_TYPE__unknownstage;
+                        serverconn->handshakedone = HANDSHAKE_DONE;
                         log_debug("[RECEIVED MASTER SECRET]");
                         printKey(serverconn->securekey, KEYLENGTH);
                   }
@@ -134,7 +129,8 @@ int handle_io_client()
 
             case MESSAGE_TYPE__unknownstage:
             {
-                  log_debug("UNKNOWN SWITCH INVOKED");
+                  log_error("[IRCSERVER DISCONNECTED DURING HANDSHAKE]");
+                  deregisterServer();
                   break;
             }
 
@@ -144,6 +140,21 @@ int handle_io_client()
                   break;
             }
       }
-      
-      return SUCCESS;
+}
+
+void handle_io_client()
+{
+      if(serverconn->registered == NOT_REGISTERED)
+      {
+            log_info("[EXCEPTION WHILE MAKING CONNECTION][CONNECTION NOT REGISTERED");
+            deregisterServer();
+      }
+
+      if(serverconn->handshakedone == HANDSHAKE_NOT_DONE)
+      {
+            handle_io_client_handshake();
+            return;
+      }
+
+
 }

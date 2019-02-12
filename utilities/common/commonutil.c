@@ -185,7 +185,7 @@ int readconnection(Connection *c, MessageType mtype)
 
         if(c->len == 0)
         {
-                log_info("[%s][CLIENT DISCONNECTION]", c->sid);
+                log_info("[%s][CLIENT DISCONNECTED]", c->sid);
                 return FAILURE;
         }
 
@@ -198,6 +198,8 @@ int readconnection(Connection *c, MessageType mtype)
                 }
         }
 
+        c->writable = WRITABLE;
+
         return SUCCESS;
 }
 
@@ -205,7 +207,7 @@ int writeconnection(Connection *c)
 {
         if( write(c->fd, c->buffer, c->len) < 0 )
         {
-                log_info("[EXCEPTION WHILE WRITING TO CONNECTION]");
+                log_info("[%s][EXCEPTION WHILE WRITING TO CONNECTION]", c->sid);
                 return FAILURE;
         }
 
@@ -224,7 +226,6 @@ void wrapConnection(Connection *c, IRCMessage *data)
         
         c->payload->data = data;
         c->payload->mtype = c->stage;
-
 
         c->len = ircpayload__get_packed_size(c->payload);
 

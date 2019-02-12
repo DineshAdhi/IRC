@@ -43,20 +43,12 @@ int main()
 
                      if(FD_ISSET(serverconn->fd, &read_fds))
                      {
-                              if( handle_io_client() == FAILURE)
-                              {
-                                    deregisterServer();
-                                    exit(1);
-                              }
+                              handle_io_client();
                      }
 
                      if(FD_ISSET(serverconn->fd, &write_fds))
                      {
-                              if( handle_io_client() == FAILURE)
-                              {
-                                    deregisterServer();
-                                    exit(1);
-                              }
+                              handle_io_client();
                      }
 
                      if(FD_ISSET(serverconn->fd, &except_fds))
