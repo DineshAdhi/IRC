@@ -10,7 +10,7 @@
 #include<signal.h>
 #include<time.h>
 
-#include "../../protobufs/payload.pb-c.h"
+#include "../protobufs/payload.pb-c.h"
 
 #define URANDOM_FILE "/dev/urandom"
 
@@ -19,7 +19,7 @@
 #define PORT 4321
 
 #define MAX_STDIN_INPUT 1024
-#define MAX_DATA_LENGTH 1024
+#define MAX_DATA_LENGTH 10240
 #define SUCCESS 1
 #define FAILURE -1
 
@@ -28,7 +28,7 @@
 #define PROTOCOL IPPROTO_TCP
 
 #define RANDOMLEN 61
-#define KEYLENGTH 64
+#define KEYLENGTH 32
 #define SIDLENGTH 16 + 1 // 16 Digits + 1 for Null
 
 #define DFH_G 2
@@ -43,14 +43,38 @@
 #define WRITABLE 1
 #define NOT_WRITABLE -1
 #define UNKNOWN_STAGE -1
+#define HANDSHAKE_DONE 1
+#define HANDSHAKE_NOT_DONE -1
+
+//////////////////////////////  AES Variables
+
+#define AESROUNDKEYLEN 240 
 
 #define DFH(a, b) fmod(pow(a, b), DFH_P)
+
+typedef struct {
+    uint8_t rkey[AESROUNDKEYLEN];
+}AES_CTX;
+
+
+typedef struct {
+    AES_CTX *ctx;
+    uint8_t *plain;
+    size_t length;
+    uint8_t *hash;
+    char *hex;
+    char *base64;
+} AES_WRAPPER;
+
+////////////////////////////
 
 
 typedef struct {
     uint8_t *sharedkey;
     uint8_t *randomkey;
     uint8_t *oppdfhkey;
+    uint8_t *securekey;
+    AES_WRAPPER *aeswrapper;
     char *ip;
     int port;
     char *sid;
@@ -59,6 +83,8 @@ typedef struct {
     int registered;
     int secure;
     int writable;
+    int handshakedone;
+    uint8_t *buffer;
     size_t len;
     IRCPayload *payload;
     MessageType stage;
@@ -69,15 +95,16 @@ static FILE *urandom;
 int createSocket();
 char *createSessionId();
 uint8_t *createRandomKey();
+uint8_t *createAESKey();
 uint8_t *createDFHKey(uint8_t *key);
 int readconnection(Connection *c, MessageType mtype);
-int writeconnection(Connection *c, MessageType mtype);
+int writeconnection(Connection *c);
 void wrapConnection(Connection *c, IRCMessage *data);
 int bindsocket(int fd, struct sockaddr_in address_in);
 uint8_t *resolveDFHKey(uint8_t *secretkey, uint8_t *publickey);
 void extract_addr_info(struct sockaddr_in clientaddr, char *ip, int *port);
 int generateRandom();
 void initializeCommonUtils();
-void printKey(uint8_t *key);
+void printKey(uint8_t *key, int len);
 
 #endif

@@ -6,9 +6,10 @@
 #include<unistd.h>
 #include<signal.h>
 
-#include"../common/commonutil.h"
-#include "clientutil.h"
-#include "../logger/log.h"
+#include"../../include/commonutil.h"
+#include"../../include/aes256.h"
+#include "../../include/clientutil.h"
+#include "../../include/log.h"
 
 void handle_stdin_data()
 {
@@ -45,15 +46,8 @@ int initiateReconnect()
       return FAILURE;
 }
 
-int handle_io_client()
+void handle_io_client_handshake()
 {
-      if(serverconn->registered == NOT_REGISTERED)
-      {
-            log_info("[EXCEPTION WHILE MAKING CONNECTION][CONNECTION NOT REGISTERED");
-            deregisterServer();
-            return FAILURE;
-      }
-
       switch(serverconn->stage)
       {
             case MESSAGE_TYPE__clienthello:
@@ -61,16 +55,12 @@ int handle_io_client()
                   IRCMessage *message = (IRCMessage *) calloc(1, sizeof(IRCMessage));
                   ircmessage__init(message);
                   message->dfhkey = (char *) createDFHKey(serverconn->randomkey);
-
-                  log_debug("[CLIENT DFH KEY]"); printKey((uint8_t *)message->dfhkey);
-
                   serverconn->stage = MESSAGE_TYPE__serverhello;
                   wrapConnection(serverconn, message);
 
-                  if(writeconnection(serverconn, MESSAGE_TYPE__serverhello) == FAILURE)
+                  if(writeconnection(serverconn) == FAILURE)
                   {
                         deregisterServer();
-                        exit(1);
                   }
 
                   break;
@@ -78,14 +68,56 @@ int handle_io_client()
 
             case MESSAGE_TYPE__serverhello: 
             {
-                  if(readconnection(serverconn, UNKNOWN_STAGE) == SUCCESS)
+                  if(readconnection(serverconn, MESSAGE_TYPE__keyexchange) == SUCCESS)
                   {
                         serverconn->oppdfhkey = (uint8_t *) serverconn->payload->data->dfhkey;
-                        log_debug("[CLIENT OPP DFH KEY]"); printKey(serverconn->oppdfhkey);
                         serverconn->sharedkey = resolveDFHKey(serverconn->randomkey, serverconn->oppdfhkey);
-                        log_debug("[CLIENT SHARED KEY]"); printKey(serverconn->sharedkey);
-                        serverconn->stage = UNKNOWN_STAGE;
+                        log_debug("[CLIENT SHARED KEY]"); printKey(serverconn->sharedkey, KEYLENGTH);
+                        serverconn->stage = MESSAGE_TYPE__keyexchange;
                         serverconn->writable = WRITABLE;
+                  }
+                  else 
+                  {
+                        log_error("[ERROR WHILE READING FROM CONNECTION]");
+                        deregisterServer();
+                  }
+
+                  break;
+            }
+
+            case MESSAGE_TYPE__keyexchange:
+            {
+                  IRCMessage *msg = (IRCMessage *) calloc(1, sizeof(IRCMessage));
+                  ircmessage__init(msg);
+                  msg->sharedkey =(char *) serverconn->sharedkey;
+                  
+                  serverconn->secure = SECURE;
+                  serverconn->aeswrapper = init_aes256_wrapper(serverconn->sharedkey);
+                  serverconn->stage = MESSAGE_TYPE__handshakedone;
+                  wrapConnection(serverconn, msg);
+
+                  if(writeconnection(serverconn) == SUCCESS)
+                  {
+                        log_debug("[SHARED KEY EXCHANGE DONE]");
+                  }
+                  else 
+                  {
+                        log_error("[HANDSHAKE EXCEPTION][ERROR WHILE KEY EXCHANGE]");
+                        deregisterServer();
+                  }
+
+                  break;
+            }
+
+            case MESSAGE_TYPE__handshakedone: 
+            {
+                  if(readconnection(serverconn, MESSAGE_TYPE__unknownstage) == SUCCESS)
+                  {
+                        serverconn->securekey = (uint8_t *) serverconn->payload->data->securekey;
+                        serverconn->stage = MESSAGE_TYPE__unknownstage;
+                        serverconn->handshakedone = HANDSHAKE_DONE;
+                        log_debug("[RECEIVED MASTER SECRET]");
+                        printKey(serverconn->securekey, KEYLENGTH);
                   }
                   else 
                   {
@@ -95,10 +127,34 @@ int handle_io_client()
                   break;
             }
 
-            default:
-                  //log_info("[UNKNOWN STAGE EXCEPTION]");
+            case MESSAGE_TYPE__unknownstage:
+            {
+                  log_error("[IRCSERVER DISCONNECTED DURING HANDSHAKE]");
+                  deregisterServer();
                   break;
+            }
+
+            default:
+            {
+                  log_debug("DEFAULT SWITCH INVOKED");
+                  break;
+            }
       }
-      
-      return SUCCESS;
+}
+
+void handle_io_client()
+{
+      if(serverconn->registered == NOT_REGISTERED)
+      {
+            log_info("[EXCEPTION WHILE MAKING CONNECTION][CONNECTION NOT REGISTERED");
+            deregisterServer();
+      }
+
+      if(serverconn->handshakedone == HANDSHAKE_NOT_DONE)
+      {
+            handle_io_client_handshake();
+            return;
+      }
+
+
 }

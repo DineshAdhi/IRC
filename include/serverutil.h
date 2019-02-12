@@ -8,8 +8,8 @@
 #include<unistd.h>
 #include<signal.h>
 
-#include"../../protobufs/payload.pb-c.h"
-#include"../common/commonutil.h"
+#include"../protobufs/payload.pb-c.h"
+#include"commonutil.h"
 
 #define SERVER_IP "0.0.0.0"
 #define CLIENT_MAX 1000
@@ -22,6 +22,7 @@ int serverfd;
 
 void terminateServer();
 void initializeIRCServer();
+int verifySharedKey(Connection *c);
 void deregisterClient(Connection *c);
 int listenforconnections(int fd);
 struct sockaddr_in* getserversockAddr();

@@ -7,4 +7,4 @@
 #include<signal.h>
 
 void handle_stdin_data();
-int handle_io_client();
+void handle_io_client();

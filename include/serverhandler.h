@@ -4,7 +4,7 @@
 #include<sys/socket.h>
 #include<unistd.h>
 
-#include "../logger/log.h"
+#include "log.h"
 
 int handle_incoming_connection(int serverfd);
 void handle_data_from_stdin();

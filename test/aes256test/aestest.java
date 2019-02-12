@@ -28,7 +28,7 @@ public class aestest
     }
     public static void main(String args[]) throws Exception
     {
-        String str = "asdfasdfasdfasdf";
+        String str = "qwerwertyjmgnfbdvcsx";
         byte[] data = str.getBytes();
 
         int rem = (16 - data.length % 16);

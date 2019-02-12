@@ -1,14 +1,19 @@
 syntax="proto3";
 
 enum MessageType {
-    clienthello = 0;
-    serverhello = 1;
-    userlist = 2;
-    relaymessage = 3;
+    userlist = 0;
+    relaymessage = 1;
+    clienthello = 2;
+    serverhello = 3;
+    keyexchange = 4;
+    handshakedone = 5;
+    unknownstage = 6;
 }
 
 message IRCMessage {
     string dfhkey = 1;
+    string sharedkey = 2;
+    string securekey = 3;
 }
 
 message IRCPayload {

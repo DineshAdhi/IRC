@@ -7,9 +7,9 @@
 #include<signal.h>
 #include<netdb.h>
 
-#include"../common/commonutil.h"
-#include"../logger/log.h"
-#include"clientutil.h"
+#include"../../include/commonutil.h"
+#include"../../include/log.h"
+#include"../../include/clientutil.h"
 
 void terminateClient()
 {
@@ -97,6 +97,7 @@ int _connect_to_server(int reconnect)
       serverconn->stage = MESSAGE_TYPE__clienthello;
       serverconn->secure = NOT_SECURE;
       serverconn->writable = WRITABLE;
+      serverconn->handshakedone = HANDSHAKE_NOT_DONE;
       serverconn->randomkey = createRandomKey();
 
       log_info("[IRCCLIENT][CONNECTED TO SERVER][REMOTE SERVER IP - %s][PORT - %d]", serverconn->ip, serverconn->port);
@@ -124,4 +125,5 @@ void deregisterServer()
 {
       log_info("[DEREGISTERING SERVER]");
       close(serverconn->fd);
+      exit(1);
 }

@@ -3,8 +3,9 @@
 #include<unistd.h>
 #include<string.h>
 
-#include"aes256.h"
-#include"base64.h"
+#include"../../include/aes256.h"
+#include"../../include/base64.h"
+#include"../../include/commonutil.h"
 
 void getRoundkey(uint8_t *Rkey, uint8_t *key)
 {
@@ -236,7 +237,7 @@ static void decipher(state_t* s,uint8_t* RoundKey)
       add_round_key(s, RoundKey, 0);
 }
 
-AES_CTX *init_aes356_ctx(uint8_t *key)
+AES_CTX *init_aes256_ctx(uint8_t *key)
 {
       AES_CTX *ctx = (AES_CTX *) calloc(1, sizeof(AES_CTX));
       getRoundkey(ctx->rkey, key);
@@ -244,10 +245,10 @@ AES_CTX *init_aes356_ctx(uint8_t *key)
       return ctx;
 }
 
-state_t *copy_to_state(uint8_t *plain, int mark)
+state_t *copy_to_state(uint8_t *plain, int mark, int len)
 {
       int i, j;
-      state_t *s = (state_t *)calloc(1, sizeof(state_t));
+      state_t *s = (state_t *)calloc(1, sizeof(state_t)); 
 
       for(i=0; i<4; i++)
       {
@@ -260,7 +261,7 @@ state_t *copy_to_state(uint8_t *plain, int mark)
       return s;
 }
 
-void copy_to_buffer(state_t *s, uint8_t *enc, int mark)
+void copy_to_buffer(state_t *s, uint8_t *enc, int mark, int len)
 {
       int i,j;
 
@@ -271,8 +272,6 @@ void copy_to_buffer(state_t *s, uint8_t *enc, int mark)
                   enc[mark++] = (*s)[i][j];
             }
       }
-
-      enc[mark] = '\0';
 }
 
 uint8_t* aes256_encrypt(AES_CTX *ctx, uint8_t *plain, size_t length)
@@ -284,9 +283,9 @@ uint8_t* aes256_encrypt(AES_CTX *ctx, uint8_t *plain, size_t length)
 
      for(i=0; i<length; i=i+AESBLOCKLEN)
      {
-            s = copy_to_state(plain, i);
+            s = copy_to_state(plain, i, length);
             cipher(s, ctx->rkey);
-            copy_to_buffer(s, hash, i);
+            copy_to_buffer(s, hash, i, length);
      }
 
      return hash;
@@ -301,17 +300,17 @@ uint8_t* aes256_decrypt(AES_CTX *ctx, uint8_t *hash, size_t length)
 
      for(i=0; i<length; i=i+AESBLOCKLEN)
      {
-            s = copy_to_state(hash, i);
+            s = copy_to_state(hash, i, length);
             decipher(s, ctx->rkey);
-            copy_to_buffer(s, plain, i);
+            copy_to_buffer(s, plain, i, length);
      }
 
      return plain;
 }
 
-AES_WRAPPER* ini_aes256_wrapper(uint8_t *key)
+AES_WRAPPER* init_aes256_wrapper(uint8_t *key)
 {      
-      AES_CTX *ctx = init_aes356_ctx(key);
+      AES_CTX *ctx = init_aes256_ctx(key);
 
       AES_WRAPPER *w = (AES_WRAPPER *) calloc(1, sizeof(AES_WRAPPER));
       w->ctx = ctx;
@@ -322,19 +321,21 @@ AES_WRAPPER* ini_aes256_wrapper(uint8_t *key)
       return w;
 }
 
-void wrapper_aes256_encrypt(AES_WRAPPER *w)
+int wrapper_aes256_encrypt(AES_WRAPPER *w)
 {
       int  i = 0, j, itr = 0;
-      int rem =  (w->length % 16);
+      int rem =  16 - (w->length % 16);
+
+      w->length += rem;
 
       state_t *s = (state_t *) calloc(1, sizeof(state_t));
       w->hash = (uint8_t *) calloc(w->length, sizeof(char));
 
       for(i=0; i<w->length; i=i+AESBLOCKLEN)
       {
-            s = copy_to_state(w->plain, i);
+            s = copy_to_state(w->plain, i, w->length);
             cipher(s, w->ctx->rkey);
-            copy_to_buffer(s, w->hash, i);
+            copy_to_buffer(s, w->hash, i, w->length);
       }
 
       #if defined(DO_ENCODING_AFTER_ENCRYPTION) && (DO_ENCODING_AFTER_ENCRYPTION == 1)
@@ -353,9 +354,11 @@ void wrapper_aes256_encrypt(AES_WRAPPER *w)
       #if defined(DELETE_PLAIN_AFETER_ENCRYPTION) && (DELETE_PLAIN_AFETER_ENCRYPTION == 1)
             w->plain = NULL;
       #endif
+
+      return w->length;
 }
 
-void wrapper_aes256_decrypt(AES_WRAPPER *w)
+int wrapper_aes256_decrypt(AES_WRAPPER *w)
 {
      int  i = 0, j, itr = 0;
 
@@ -364,12 +367,37 @@ void wrapper_aes256_decrypt(AES_WRAPPER *w)
 
      for(i=0; i<w->length; i=i+AESBLOCKLEN)
      {
-            s = copy_to_state(w->hash, i);
+            s = copy_to_state(w->hash, i, w->length);
             decipher(s, w->ctx->rkey);
-            copy_to_buffer(s, w->plain, i);
+            copy_to_buffer(s, w->plain, i, w->length);
      }
+
+     for(i=0; i<w->length; i++)
+     {
+           if(w->plain[i] == 0x00)
+                  break;
+     }
+
+     return i;
 }
 
+void conn_wrapper_aes256_encrypt(Connection *c)
+{
+      c->aeswrapper->plain = c->buffer;
+      c->aeswrapper->length = c->len;
+
+      c->len = wrapper_aes256_encrypt(c->aeswrapper);
+      c->buffer = c->aeswrapper->hash;
+}
+
+void conn_wrapper_aes256_decrypt(Connection *c)
+{
+      c->aeswrapper->hash = c->buffer;
+      c->aeswrapper->length = c->len;
+
+      c->len = wrapper_aes256_decrypt(c->aeswrapper);
+      c->buffer = c->aeswrapper->plain;
+}
 
 
 

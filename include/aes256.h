@@ -1,4 +1,7 @@
+#ifndef AES256_H
+#define AES256_H
 #include<stdlib.h>
+#include"commonutil.h"
 
 #define Nr 14
 #define Nb 4
@@ -7,7 +10,7 @@
 #define getSBoxValue(num) (sbox[(num)])
 #define getSBoxInvert(num) (rsbox[(num)])
 
-#define AESROUNDKEYLEN 240 
+
 #define AESBLOCKLEN 16
 #define DELETE_PLAIN_AFETER_ENCRYPTION 1
 #define DO_ENCODING_AFTER_ENCRYPTION 1
@@ -16,21 +19,7 @@ static const uint8_t Rcon[11] = { 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40
 
 typedef uint8_t state_t[4][4];
 
-typedef struct {
-    uint8_t rkey[AESROUNDKEYLEN];
-}AES_CTX;
-
-typedef struct {
-    AES_CTX *ctx;
-    uint8_t *plain;
-    size_t length;
-    uint8_t *hash;
-    char *hex;
-    char *base64;
-} AES_WRAPPER;
-
 static const uint8_t sbox[256] = {
-  //0     1    2      3     4    5     6     7      8    9     A      B    C     D     E     F
   0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
   0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
   0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
@@ -67,9 +56,13 @@ static const uint8_t rsbox[256] = {
   0xa0, 0xe0, 0x3b, 0x4d, 0xae, 0x2a, 0xf5, 0xb0, 0xc8, 0xeb, 0xbb, 0x3c, 0x83, 0x53, 0x99, 0x61,
   0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d };
 
-AES_CTX *init_aes356_ctx(uint8_t *key);
-AES_WRAPPER* ini_aes256_wrapper(uint8_t *key);
+AES_CTX *init_aes256_ctx(uint8_t *key);
+AES_WRAPPER* init_aes256_wrapper(uint8_t *key);
 uint8_t* aes256_encrypt(AES_CTX *ctx, uint8_t *plain, size_t length);
 uint8_t* aes256_decrypt(AES_CTX *ctx, uint8_t *hash, size_t length);
-void wrapper_aes256_encrypt(AES_WRAPPER *w);
-void wrapper_aes256_decrypt(AES_WRAPPER *w);
+int wrapper_aes256_encrypt(AES_WRAPPER *w);
+int wrapper_aes256_decrypt(AES_WRAPPER *w);
+void conn_wrapper_aes256_encrypt(Connection *c);
+void conn_wrapper_aes256_decrypt(Connection *c);
+
+#endif

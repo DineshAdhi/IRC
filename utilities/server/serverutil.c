@@ -7,13 +7,24 @@
 #include<string.h>
 #include<signal.h>
 
-#include"serverutil.h"
-#include"../logger/log.h"
-#include "../common/commonutil.h"
+#include"../../include/serverutil.h"
+#include"../../include/log.h"
+#include "../../include/commonutil.h"
 
 void terminateServer()
 {
+        int i;
+
         log_info("[IRCSERVER][SIGINT/SIGTSTP RECEIVED][HALTING SERVER]");
+
+        for(i=0; i<CLIENT_MAX; i++)
+        {
+                if(conns[i].fd == NO_FD)
+                        continue;
+                
+                close(conns[i].fd);
+        }
+        
         close(serverfd);
         exit(1);
 }
@@ -141,6 +152,7 @@ int registerClient(char *ip, int port, int remotefd)
         conns[i].payload = (IRCPayload *) calloc(1, sizeof(IRCPayload));
         conns[i].stage = MESSAGE_TYPE__clienthello;
         conns[i].secure = NOT_SECURE;
+        conns[i].handshakedone = HANDSHAKE_NOT_DONE;
         conns[i].sid = createSessionId();
         conns[i].randomkey = createRandomKey();
 
@@ -154,6 +166,21 @@ void deregisterClient(Connection *c)
         log_info("[%s][DEREGISTERING CONNECTION][FD - %d][IP - %s][PORT - %d]", c->sid, c->fd, c->ip, c->port);
         close(c->fd);
         c->fd = NO_FD;
+}
+
+int verifySharedKey(Connection *c)
+{
+        int i;
+
+        for(i=0; i<KEYLENGTH; i++)
+        {
+                if(c->sharedkey[i] != c->payload->data->sharedkey[i])
+                {
+                        return FAILURE;
+                }
+        }
+
+        return SUCCESS;
 }
 
 

@@ -6,7 +6,7 @@
 #include<unistd.h>
 #include<signal.h>
 
-#include "../common/commonutil.h"
+#include "commonutil.h"
 
 #define REMOTE_SERVER_IP "127.0.0.1"
 #define REMOTE_SERVER_DOMAIN "localhost"

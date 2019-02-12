@@ -2,7 +2,7 @@
 #include<string.h>
 #include<stdlib.h>
 
-#include"base64.h"
+#include"../../include/base64.h"
 
 uint8_t lookuptable[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 

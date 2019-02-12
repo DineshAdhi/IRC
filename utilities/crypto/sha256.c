@@ -2,7 +2,7 @@
 #include<stdlib.h>
 #include<string.h>
 
-#include"sha256.h"
+#include"../../include/sha256.h"
 
 void sha256ctx_int(SHA256Ctx *ctx, void *input, size_t len)
 {

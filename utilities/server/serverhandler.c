@@ -5,10 +5,11 @@
 #include<unistd.h>
 #include<string.h>
 
-#include "../logger/log.h"
-#include "serverhandler.h"
-#include "serverutil.h"
-#include "../common/commonutil.h"
+#include "../../include/log.h"
+#include "../../include/serverhandler.h"
+#include "../../include/serverutil.h"
+#include"../../include/aes256.h"
+#include "../../include/commonutil.h"
 #include "../../protobufs/payload.pb-c.h"
 
 int handle_incoming_connection(int serverfd)
@@ -36,10 +37,8 @@ int handle_incoming_connection(int serverfd)
         return remotefd;
 }
 
-void handle_io_server(int id, int cfd)
+void handle_io_server_handshake(Connection *c)
 {
-        Connection *c = &conns[id];
-
         switch(c->stage)
         {
                 case MESSAGE_TYPE__clienthello:
@@ -47,18 +46,16 @@ void handle_io_server(int id, int cfd)
                         if(readconnection(c, MESSAGE_TYPE__serverhello) == SUCCESS)
                         {
                                 c->oppdfhkey = (uint8_t *) c->payload->data->dfhkey;
-                                log_debug("[OPP DFH KEY]"); printKey(c->oppdfhkey);
                                 c->sharedkey = resolveDFHKey(c->randomkey, c->oppdfhkey);
-                                log_debug("[SERVER SHARED KEY]"); printKey(c->sharedkey);
+                                log_debug("[%s][SERVER SHARED KEY]", c->sid); printKey(c->sharedkey, KEYLENGTH);
                                 c->stage = MESSAGE_TYPE__serverhello;
-                                c->writable = WRITABLE;
-                                break;
                         }
                         else 
                         {
-                                log_error("[IRCSERVER][ERROR WHILE READING FROM CONNECTION]");
                                 deregisterClient(c);
                         }
+
+                        break;
                 }
                 
                 case MESSAGE_TYPE__serverhello: 
@@ -66,26 +63,97 @@ void handle_io_server(int id, int cfd)
                         IRCMessage *ircmessage = (IRCMessage *) calloc(1, sizeof(IRCMessage));
                         ircmessage__init(ircmessage);
                         ircmessage->dfhkey = (char *)createDFHKey(c->randomkey);
-                        log_debug("[SERVER RANDOM KEY]"); printKey((uint8_t *)ircmessage->dfhkey);
-                        c->stage = UNKNOWN_STAGE;
+                        c->stage = MESSAGE_TYPE__keyexchange;
 
                         wrapConnection(c, ircmessage);
 
-                        if(writeconnection(c, MESSAGE_TYPE__serverhello) == SUCCESS)
+                        if(writeconnection(c) == SUCCESS)
                         {
-                                
+
                         }
                         else 
                         {
-                                log_error("[IRCSERVER][ERROR WHILE WRITING TO CONNECTION]");
                                 deregisterClient(c);
                         }
-                        
+
                         break;
                 }
 
-                default: 
-                        //log_info("[%s][HANDSHAKE EXCEPTION][UNKNOWN STAGE]", c->fd);
+                case MESSAGE_TYPE__keyexchange: 
+                {
+                        c->aeswrapper = init_aes256_wrapper(c->sharedkey);
+                        c->secure = SECURE;
+                        c->stage = MESSAGE_TYPE__handshakedone;
+
+                        if(readconnection(c, MESSAGE_TYPE__handshakedone) == SUCCESS)
+                        {
+                                if(verifySharedKey(c) == SUCCESS)
+                                {
+                                        
+                                        log_debug("[%s][SHARED KEY VERIFICATION SUCCESS]", c->sid);
+                                }
+                                else 
+                                {
+                                        log_debug("[%s][SHARED KEY VERIFICATION FAILED]", c->sid);
+                                        deregisterClient(c);
+                                }
+                                
+                                printKey((uint8_t *)c->payload->data->sharedkey, KEYLENGTH);
+                        }
+                        else 
+                        {
+                                log_error("[%s][ERROR READING CONNECTION DURING KEY EXCHANGE]", c->sid);
+                                deregisterClient(c);
+                        }
+
                         break;
+                }
+
+                case MESSAGE_TYPE__handshakedone:
+                {
+                        c->securekey = createAESKey();
+                        
+                        IRCMessage *ircmessage = (IRCMessage *) calloc(1, sizeof(IRCMessage));
+                        ircmessage__init(ircmessage);
+                        ircmessage->securekey = (char *) c->securekey;
+                        c->stage = MESSAGE_TYPE__unknownstage;
+
+                        wrapConnection(c, ircmessage);
+
+                        if(writeconnection(c) == SUCCESS)
+                        {
+                                c->aeswrapper = init_aes256_wrapper((uint8_t *)c->securekey);
+                                c->handshakedone = HANDSHAKE_DONE;
+                                log_debug("[SHARED MASTER SECRET]");
+                                printKey(c->securekey, KEYLENGTH);
+                        }
+                        else 
+                        {
+                                log_error("[%s][ERROR WHILE WRITING TO CONNECTION]", c->sid);  
+                                deregisterClient(c);
+                        }
+
+                        break;
+                }
+
+                case MESSAGE_TYPE__unknownstage:
+                        log_info("[%s][CLIENT DISCONNECTED][FD - %d][ID - %d]", c->sid, c->fd, c->id);
+                        deregisterClient(c);
+                        break;
+
+                default: 
+                        log_info("[%s][HANDSHAKE EXCEPTION][UNKNOWN STAGE]", c->fd);
+                        break;
+        }
+}
+
+void handle_io_server(int id, int cfd)
+{
+        Connection *c = &conns[id];
+
+        if(c->handshakedone == HANDSHAKE_NOT_DONE)
+        {
+                handle_io_server_handshake(c);
+                return;
         }
 }

@@ -5,10 +5,10 @@
 #include<sys/time.h>
 #include<unistd.h>
 
-#include"utilities/client/clientutil.h"
-#include"utilities/client/clienthandler.h"
-#include"utilities/logger/log.h"
-#include"utilities/common/commonutil.h"
+#include"include/clientutil.h"
+#include"include/clienthandler.h"
+#include"include/log.h"
+#include"include/commonutil.h"
 
 int main()
 {
@@ -43,18 +43,18 @@ int main()
 
                      if(FD_ISSET(serverconn->fd, &read_fds))
                      {
-                              if( handle_io_client() == FAILURE)
-                              {
-                                    exit(1);
-                              }
+                              handle_io_client();
                      }
 
                      if(FD_ISSET(serverconn->fd, &write_fds))
                      {
-                              if( handle_io_client() == FAILURE)
-                              {
-                                    exit(1);
-                              }
+                              handle_io_client();
+                     }
+
+                     if(FD_ISSET(serverconn->fd, &except_fds))
+                     {
+                           log_debug("[EXCEPTION IN SELECT]");
+                           deregisterServer();
                      }
             }
       }
