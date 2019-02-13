@@ -189,7 +189,7 @@ int readconnection(Connection *c, MessageType mtype)
                 return FAILURE;
         }
 
-        if(c->secure == NOT_SECURE)
+        if(c->secure == NOT_SECURE && c->handshakedone == HANDSHAKE_NOT_DONE)
         {
                 if(c->payload->mtype != mtype)
                 {

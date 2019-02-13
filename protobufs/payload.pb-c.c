@@ -97,7 +97,7 @@ void   ircpayload__free_unpacked
   assert(message->base.descriptor == &ircpayload__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-static const ProtobufCFieldDescriptor ircmessage__field_descriptors[3] =
+static const ProtobufCFieldDescriptor ircmessage__field_descriptors[5] =
 {
   {
     "dfhkey",
@@ -135,16 +135,42 @@ static const ProtobufCFieldDescriptor ircmessage__field_descriptors[3] =
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+  {
+    "username",
+    4,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
+    offsetof(IRCMessage, username),
+    NULL,
+    &protobuf_c_empty_string,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "password",
+    5,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
+    offsetof(IRCMessage, password),
+    NULL,
+    &protobuf_c_empty_string,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned ircmessage__field_indices_by_name[] = {
   0,   /* field[0] = dfhkey */
+  4,   /* field[4] = password */
   2,   /* field[2] = securekey */
   1,   /* field[1] = sharedkey */
+  3,   /* field[3] = username */
 };
 static const ProtobufCIntRange ircmessage__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 3 }
+  { 0, 5 }
 };
 const ProtobufCMessageDescriptor ircmessage__descriptor =
 {
@@ -154,7 +180,7 @@ const ProtobufCMessageDescriptor ircmessage__descriptor =
   "IRCMessage",
   "",
   sizeof(IRCMessage),
-  3,
+  5,
   ircmessage__field_descriptors,
   ircmessage__field_indices_by_name,
   1,  ircmessage__number_ranges,
@@ -212,7 +238,7 @@ const ProtobufCMessageDescriptor ircpayload__descriptor =
   (ProtobufCMessageInit) ircpayload__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCEnumValue message_type__enum_values_by_number[7] =
+static const ProtobufCEnumValue message_type__enum_values_by_number[9] =
 {
   { "userlist", "MESSAGE_TYPE__userlist", 0 },
   { "relaymessage", "MESSAGE_TYPE__relaymessage", 1 },
@@ -221,17 +247,21 @@ static const ProtobufCEnumValue message_type__enum_values_by_number[7] =
   { "keyexchange", "MESSAGE_TYPE__keyexchange", 4 },
   { "handshakedone", "MESSAGE_TYPE__handshakedone", 5 },
   { "unknownstage", "MESSAGE_TYPE__unknownstage", 6 },
+  { "auth", "MESSAGE_TYPE__auth", 7 },
+  { "signup", "MESSAGE_TYPE__signup", 8 },
 };
 static const ProtobufCIntRange message_type__value_ranges[] = {
-{0, 0},{0, 7}
+{0, 0},{0, 9}
 };
-static const ProtobufCEnumValueIndex message_type__enum_values_by_name[7] =
+static const ProtobufCEnumValueIndex message_type__enum_values_by_name[9] =
 {
+  { "auth", 7 },
   { "clienthello", 2 },
   { "handshakedone", 5 },
   { "keyexchange", 4 },
   { "relaymessage", 1 },
   { "serverhello", 3 },
+  { "signup", 8 },
   { "unknownstage", 6 },
   { "userlist", 0 },
 };
@@ -242,9 +272,9 @@ const ProtobufCEnumDescriptor message_type__descriptor =
   "MessageType",
   "MessageType",
   "",
-  7,
+  9,
   message_type__enum_values_by_number,
-  7,
+  9,
   message_type__enum_values_by_name,
   1,
   message_type__value_ranges,

@@ -147,6 +147,11 @@ void handle_io_server_handshake(Connection *c)
         }
 }
 
+void handle_io_server_auth(Connection *c)
+{
+
+}
+
 void handle_io_server(int id, int cfd)
 {
         Connection *c = &conns[id];
@@ -156,4 +161,41 @@ void handle_io_server(int id, int cfd)
                 handle_io_server_handshake(c);
                 return;
         }
+
+        if(c->writable == WRITABLE)
+        {
+                if(writeconnection(c) == FAILURE)
+                {
+                        log_error("[%s][ERROR WHILE WRITING TO CONNECTION]");
+                }
+                return;
+        }
+
+        if(readconnection(c, MESSAGE_TYPE__unknownstage) == FAILURE)
+        {
+                deregisterClient(c);
+                return;
+        }
+
+        IRCPayload *pload = c->payload;
+        IRCMessage *msg = pload->data;
+
+        switch(pload->mtype)
+        {
+                case MESSAGE_TYPE__auth:
+                {
+                        break;
+                }
+
+                case MESSAGE_TYPE__signup:
+                {
+                        break;
+                }
+
+                default:
+                   log_error("[%s][MTYPE UNKNOWN]");
+                   deregisterClient(c);
+                   break;
+        }
+
 }

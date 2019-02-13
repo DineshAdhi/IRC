@@ -28,7 +28,9 @@ typedef enum _MessageType {
   MESSAGE_TYPE__serverhello = 3,
   MESSAGE_TYPE__keyexchange = 4,
   MESSAGE_TYPE__handshakedone = 5,
-  MESSAGE_TYPE__unknownstage = 6
+  MESSAGE_TYPE__unknownstage = 6,
+  MESSAGE_TYPE__auth = 7,
+  MESSAGE_TYPE__signup = 8
     PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(MESSAGE_TYPE)
 } MessageType;
 
@@ -40,10 +42,12 @@ struct  _IRCMessage
   char *dfhkey;
   char *sharedkey;
   char *securekey;
+  char *username;
+  char *password;
 };
 #define IRCMESSAGE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&ircmessage__descriptor) \
-    , (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string }
+    , (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string }
 
 
 struct  _IRCPayload

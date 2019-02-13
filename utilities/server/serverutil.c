@@ -153,6 +153,7 @@ int registerClient(char *ip, int port, int remotefd)
         conns[i].stage = MESSAGE_TYPE__clienthello;
         conns[i].secure = NOT_SECURE;
         conns[i].handshakedone = HANDSHAKE_NOT_DONE;
+        conns[i].authdone = UNAUTHENTICATED;
         conns[i].sid = createSessionId();
         conns[i].randomkey = createRandomKey();
 

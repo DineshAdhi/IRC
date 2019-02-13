@@ -29,7 +29,7 @@
 
 #define RANDOMLEN 61
 #define KEYLENGTH 32
-#define SIDLENGTH 16 + 1 // 16 Digits + 1 for Null
+#define SIDLENGTH 16  // 16 Digits + 1 for Null
 
 #define DFH_G 2
 #define DFH_P 57
@@ -45,6 +45,8 @@
 #define UNKNOWN_STAGE -1
 #define HANDSHAKE_DONE 1
 #define HANDSHAKE_NOT_DONE -1
+#define AUTHENTICATED 1
+#define UNAUTHENTICATED -1
 
 //////////////////////////////  AES Variables
 
@@ -84,6 +86,7 @@ typedef struct {
     int secure;
     int writable;
     int handshakedone;
+    int authdone;
     uint8_t *buffer;
     size_t len;
     IRCPayload *payload;
