@@ -1,2 +1,41 @@
-gcc ircserver.c utilities/common/*.c utilities/crypto/*.c utilities/logger/*.c utilities/server/*.c protobufs/payload.pb-c.c -DLOG_USE_COLOR -lprotobuf-c -o server.out 
-gcc ircclient.c utilities/common/*.c utilities/crypto/*.c utilities/logger/*.c utilities/client/*.c protobufs/payload.pb-c.c -DLOG_USE_COLOR -lprotobuf-c -o client.out 
+CC = gcc
+
+default : main
+	rm bin/*
+	mv client server bin/
+	export PATH=$(PATH):$(PWD)/bin/
+	make clean
+
+main : commonutil.o clienthandler.o clientutil.o serverhandler.o serverutil.o log.o aes256.o payload.o base64.o
+	CC ircserver.c commonutil.o serverhandler.o serverutil.o log.o aes256.o payload.o base64.o -lprotobuf-c -o server
+	CC ircclient.c commonutil.o clienthandler.o clientutil.o log.o aes256.o payload.o base64.o -lprotobuf-c -o client
+
+commonutil.o : utilities/common/commonutil.c include/commonutil.h log.o
+	CC -c utilities/common/commonutil.c
+
+serverutil.o : utilities/server/serverutil.c include/serverutil.h log.o
+	CC -c utilities/server/serverutil.c 
+
+clientutil.o : utilities/client/clientutil.c include/clientutil.h log.o
+	CC -c utilities/client/clientutil.c 
+
+serverhandler.o: utilities/server/serverhandler.c include/serverhandler.h
+	CC -c utilities/server/serverhandler.c
+
+clienthandler.o: utilities/client/clienthandler.c include/clienthandler.h
+	CC -c utilities/client/clienthandler.c
+
+log.o : utilities/logger/log.c include/log.h
+	CC -c utilities/logger/log.c -DLOG_USE_COLOR
+
+aes256.o: utilities/crypto/aes256.c include/aes256.h
+	CC -c utilities/crypto/aes256.c 
+
+base64.o: utilities/crypto/base64.c include/base64.h
+	CC -c utilities/crypto/base64.c
+
+payload.o: protobufs/payload.pb-c.c protobufs/payload.pb-c.h
+	CC -c protobufs/payload.pb-c.c -o payload.o
+
+clean: 
+	rm *.o
