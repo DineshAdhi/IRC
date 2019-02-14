@@ -39,15 +39,13 @@ typedef enum _MessageType {
 struct  _IRCMessage
 {
   ProtobufCMessage base;
-  char *dfhkey;
-  char *sharedkey;
-  char *securekey;
+  char *key;
   char *username;
   char *password;
 };
 #define IRCMESSAGE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&ircmessage__descriptor) \
-    , (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string }
+    , (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string }
 
 
 struct  _IRCPayload

@@ -15,6 +15,7 @@ void terminateClient()
 {
         log_info("[IRCCLIENT][SIGINT/SIGTSTP RECEIVED][HALTING SERVER]");
         close(serverconn->fd);
+        fclose(clientlog);
         exit(1);
 }
 
@@ -46,6 +47,16 @@ void initiateIRCClient()
         serverconn->sid = "111111";
 
         initializeCommonUtils();
+
+        clientlog = fopen("clientlog", "w+");
+
+     #if defined(CLIENT_DEBUG) && (CLIENT_DEBUG == 1)
+            log_set_quiet(0);
+      #else
+            log_set_quiet(1);
+      #endif
+      
+        log_set_fp(clientlog);
 }
 
 struct sockaddr_in getremoteserveraddr()

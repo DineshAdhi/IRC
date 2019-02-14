@@ -93,6 +93,7 @@ typedef struct {
     MessageType stage;
 } Connection;
 
+
 static FILE *urandom;
 
 int createSocket();

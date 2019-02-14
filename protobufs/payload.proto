@@ -13,11 +13,9 @@ enum MessageType {
 }
 
 message IRCMessage {
-    string dfhkey = 1;
-    string sharedkey = 2;
-    string securekey = 3;
-    string username = 4;
-    string password = 5;
+    string key = 1;
+    string username = 2;
+    string password = 3;
 }
 
 message IRCPayload {

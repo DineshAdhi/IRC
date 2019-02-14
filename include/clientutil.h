@@ -14,6 +14,7 @@
 #define MAX_CONNECT_RETRY 10
 
 Connection *serverconn;
+FILE *clientlog;
 
 #define initiate_connect_to_server() _connect_to_server(!RECONNECT) 
 #define connect_to_server(reconnect) _connect_to_server(reconnect) 

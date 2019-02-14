@@ -44,17 +44,16 @@ void printKey(uint8_t *key, int len)
 {
         int i;
 
-        char *hash = (char *) calloc(len, 2);
+        char *hash = (char *) calloc(len, 3);
         int itr = 0;
 
-        for(i=0; i<len * 2; i=i+2)
+        for(i=0; i<len * 3; i=i+3)
         {
-                printf("%02X ", key[itr++]);
+                sprintf(&hash[i], "%02X  ", key[itr++]);
                 fflush(stdout);
         }
 
-        printf("\n");
-        fflush(stdout);
+        log_debug("KEY : %s", hash);
 }
 
 int createSocket()
@@ -179,7 +178,7 @@ int readconnection(Connection *c, MessageType mtype)
 
         if(c->payload == NULL)
         {
-                log_info("[%s][EXCEPTION WHILE READING][PAYLOAD_NULL]", c->sid);
+                log_error("[%s][EXCEPTION WHILE READING][PAYLOAD_NULL]", c->sid);
                 return FAILURE;
         }
 

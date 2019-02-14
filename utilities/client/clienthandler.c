@@ -54,7 +54,7 @@ void handle_io_client_handshake()
             {
                   IRCMessage *message = (IRCMessage *) calloc(1, sizeof(IRCMessage));
                   ircmessage__init(message);
-                  message->dfhkey = (char *) createDFHKey(serverconn->randomkey);
+                  message->key = (char *) createDFHKey(serverconn->randomkey);
                   serverconn->stage = MESSAGE_TYPE__serverhello;
                   wrapConnection(serverconn, message);
 
@@ -70,7 +70,7 @@ void handle_io_client_handshake()
             {
                   if(readconnection(serverconn, MESSAGE_TYPE__keyexchange) == SUCCESS)
                   {
-                        serverconn->oppdfhkey = (uint8_t *) serverconn->payload->data->dfhkey;
+                        serverconn->oppdfhkey = (uint8_t *) serverconn->payload->data->key;
                         serverconn->sharedkey = resolveDFHKey(serverconn->randomkey, serverconn->oppdfhkey);
                         log_debug("[CLIENT SHARED KEY]"); printKey(serverconn->sharedkey, KEYLENGTH);
                         serverconn->stage = MESSAGE_TYPE__keyexchange;
@@ -89,7 +89,7 @@ void handle_io_client_handshake()
             {
                   IRCMessage *msg = (IRCMessage *) calloc(1, sizeof(IRCMessage));
                   ircmessage__init(msg);
-                  msg->sharedkey =(char *) serverconn->sharedkey;
+                  msg->key =(char *) serverconn->sharedkey;
                   
                   serverconn->secure = SECURE;
                   serverconn->aeswrapper = init_aes256_wrapper(serverconn->sharedkey);
@@ -113,7 +113,7 @@ void handle_io_client_handshake()
             {
                   if(readconnection(serverconn, MESSAGE_TYPE__unknownstage) == SUCCESS)
                   {
-                        serverconn->securekey = (uint8_t *) serverconn->payload->data->securekey;
+                        serverconn->securekey = (uint8_t *) serverconn->payload->data->key;
                         serverconn->stage = MESSAGE_TYPE__unknownstage;
                         serverconn->handshakedone = HANDSHAKE_DONE;
                         log_debug("[RECEIVED MASTER SECRET]");
