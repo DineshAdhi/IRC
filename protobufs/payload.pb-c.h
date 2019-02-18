@@ -17,6 +17,7 @@ PROTOBUF_C__BEGIN_DECLS
 
 typedef struct _IRCMessage IRCMessage;
 typedef struct _IRCPayload IRCPayload;
+typedef struct _UserConfig UserConfig;
 
 
 /* --- enums --- */
@@ -59,6 +60,17 @@ struct  _IRCPayload
     , NULL, MESSAGE_TYPE__userlist }
 
 
+struct  _UserConfig
+{
+  ProtobufCMessage base;
+  char *id;
+  char *password;
+};
+#define USER_CONFIG__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&user_config__descriptor) \
+    , (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string }
+
+
 /* IRCMessage methods */
 void   ircmessage__init
                      (IRCMessage         *message);
@@ -97,6 +109,25 @@ IRCPayload *
 void   ircpayload__free_unpacked
                      (IRCPayload *message,
                       ProtobufCAllocator *allocator);
+/* UserConfig methods */
+void   user_config__init
+                     (UserConfig         *message);
+size_t user_config__get_packed_size
+                     (const UserConfig   *message);
+size_t user_config__pack
+                     (const UserConfig   *message,
+                      uint8_t             *out);
+size_t user_config__pack_to_buffer
+                     (const UserConfig   *message,
+                      ProtobufCBuffer     *buffer);
+UserConfig *
+       user_config__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   user_config__free_unpacked
+                     (UserConfig *message,
+                      ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
 typedef void (*IRCMessage_Closure)
@@ -104,6 +135,9 @@ typedef void (*IRCMessage_Closure)
                   void *closure_data);
 typedef void (*IRCPayload_Closure)
                  (const IRCPayload *message,
+                  void *closure_data);
+typedef void (*UserConfig_Closure)
+                 (const UserConfig *message,
                   void *closure_data);
 
 /* --- services --- */
@@ -114,6 +148,7 @@ typedef void (*IRCPayload_Closure)
 extern const ProtobufCEnumDescriptor    message_type__descriptor;
 extern const ProtobufCMessageDescriptor ircmessage__descriptor;
 extern const ProtobufCMessageDescriptor ircpayload__descriptor;
+extern const ProtobufCMessageDescriptor user_config__descriptor;
 
 PROTOBUF_C__END_DECLS
 

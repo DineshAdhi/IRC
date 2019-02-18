@@ -22,3 +22,8 @@ message IRCPayload {
     IRCMessage data= 1;
     MessageType mtype = 2; 
 }
+
+message UserConfig {
+    string id = 1;
+    string password = 2;
+}

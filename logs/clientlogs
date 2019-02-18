@@ -1,0 +1,7 @@
+2019-02-18 17:26:38 INFO  utilities/client/clientutil.c:167: [IRCCLIENT][CONNECTED TO SERVER][REMOTE SERVER IP - 127.0.0.1][PORT - 4321]
+2019-02-18 17:26:38 DEBUG utilities/client/clienthandler.c:76: [CLIENT SHARED KEY]
+2019-02-18 17:26:38 DEBUG utilities/common/commonutil.c:56: KEY : 01 37 01 01 07 31 08 04 01 01 37 07 01 01 01 38 01 07 01 04 01 07 31 01 19 01 01 1C 31 01 38 2B  
+2019-02-18 17:26:38 DEBUG utilities/client/clienthandler.c:102: [SHARED KEY EXCHANGE DONE]
+2019-02-18 17:26:38 DEBUG utilities/client/clienthandler.c:121: [RECEIVED MASTER SECRET]
+2019-02-18 17:26:38 INFO  utilities/client/clienthandler.c:176: [Userid - dinesh ]
+2019-02-18 17:27:51 INFO  utilities/client/clientutil.c:16: [IRCCLIENT][SIGINT/SIGTSTP RECEIVED][HALTING SERVER]

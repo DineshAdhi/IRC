@@ -8,6 +8,7 @@
 
 #include"../../include/commonutil.h"
 #include"../../include/aes256.h"
+#include"../../include/sha256.h"
 #include "../../include/clientutil.h"
 #include "../../include/log.h"
 
@@ -99,6 +100,7 @@ void handle_io_client_handshake()
                   if(writeconnection(serverconn) == SUCCESS)
                   {
                         log_debug("[SHARED KEY EXCHANGE DONE]");
+                        serverconn->writable = WRITABLE;
                   }
                   else 
                   {
@@ -117,7 +119,8 @@ void handle_io_client_handshake()
                         serverconn->stage = MESSAGE_TYPE__unknownstage;
                         serverconn->handshakedone = HANDSHAKE_DONE;
                         log_debug("[RECEIVED MASTER SECRET]");
-                        printKey(serverconn->securekey, KEYLENGTH);
+                        serverconn->writable = WRITABLE;
+                        printMessage("Connected to IRCServer [HANDSHAKE SUCCESFULLY ATTEMPTED]");
                   }
                   else 
                   {
@@ -156,5 +159,22 @@ void handle_io_client()
             return;
       }
 
+      if(serverconn->authdone == UNAUTHENTICATED)
+      {
+            if(isAuthRequired == REQUIRED)
+            {
+                  userconfig = (UserConfig *) calloc(1, sizeof(UserConfig));
+                  user_config__init(userconfig);
+                  userconfig->id = prompt(">> UserID : ");
+                  userconfig->password = sha256(prompt(">> Password : "));
 
+                  saveConfigFile();
+                  serverconn->writable = NOT_WRITABLE;
+            }
+            else 
+            {
+                  log_info("[Userid - %s]", userconfig->id);
+                  serverconn->writable = NOT_WRITABLE;
+            }
+      }
 }

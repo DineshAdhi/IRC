@@ -64,7 +64,7 @@ void initializeIRCServer()
 
         initializeCommonUtils();
 
-        serverlog = fopen("serverlog", "w+");
+        serverlog = fopen(SERVER_LOGFILE_PATH, "w+");
      
       #if defined(SERVER_DEBUG) && (SERVER_DEBUG == 1)
             fflush(stdout);

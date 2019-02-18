@@ -47,6 +47,13 @@
 #define HANDSHAKE_NOT_DONE -1
 #define AUTHENTICATED 1
 #define UNAUTHENTICATED -1
+#define READ_FAILURE 2
+#define REQUIRED 1
+#define NOT_REQUIRED -1
+
+#define SERVER_LOGFILE_PATH "logs/serverlogs"
+#define CLIENT_LOGFILE_PATH "logs/clientlogs"
+#define USERCONFIG_FILE_PATH "config/config.irc"
 
 //////////////////////////////  AES Variables
 
@@ -109,6 +116,7 @@ uint8_t *resolveDFHKey(uint8_t *secretkey, uint8_t *publickey);
 void extract_addr_info(struct sockaddr_in clientaddr, char *ip, int *port);
 int generateRandom();
 void initializeCommonUtils();
-void printKey(uint8_t *key, int len);
+char* printKey(uint8_t *key, int len);
+char* readFromStdin();
 
 #endif

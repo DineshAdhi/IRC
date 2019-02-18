@@ -75,11 +75,13 @@ int getchunck(uint8_t *chunk, SHA256Ctx *ctx)
 
 void calc_hash_sha256(uint8_t *hash, uint8_t *input, size_t len)
 {
+	uint32_t h[] = { 0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19 };
+	int i, j;
 
-        uint8_t chunk[64];
+	uint8_t chunk[64];
 
-        SHA256Ctx ctx; 
-        sha256ctx_int(&ctx, input, len);
+	SHA256Ctx ctx;
+	sha256ctx_int(&ctx, input, len);
 
         while(getchunck(chunk, &ctx))
         {
@@ -89,7 +91,6 @@ void calc_hash_sha256(uint8_t *hash, uint8_t *input, size_t len)
 
                 memset(w, 0x00, sizeof w);
 
-                
                 for (i = 0; i < 16; i++) 
                 {
                     w[i] = (uint32_t) p[0] << 24 | (uint32_t) p[1] << 16 |
@@ -128,7 +129,7 @@ void calc_hash_sha256(uint8_t *hash, uint8_t *input, size_t len)
 
                 for (i = 0; i < 8; i++)
                 {
-                    h[i] += ah[i];
+                        h[i] += ah[i];
                 }
         }
 
@@ -138,25 +139,32 @@ void calc_hash_sha256(uint8_t *hash, uint8_t *input, size_t len)
                 hash[j++] = (uint8_t) (h[i] >> 16);
                 hash[j++] = (uint8_t) (h[i] >> 8);
                 hash[j++] = (uint8_t) h[i];
-        }
+        }	
 }
 
 
-void sha256(char *encoded, char *value)
+char* sha256(char *value)
 {
-    size_t len = strlen(value);
+        size_t len = strlen(value);
+        int i,j;
 
-    uint8_t hash[32] = {};
+        uint8_t hash[32] = {};
+        char *encoded = (char *) calloc(65, sizeof(char));
 
-    calc_hash_sha256(hash, (uint8_t *)value, len);
+        calc_hash_sha256(hash, (uint8_t *)value, len);
 
-    int itr = 0;
+        int itr = 0;
 
-    for(i=0; i<32; i++)
-    {
-            sprintf(&encoded[itr++], "%01X", hash[i] & 0xF0);
-            sprintf(&encoded[itr++], "%01X", hash[i] & 0x0F);
-    }
+        printf("HASH : %s\n", hash);
+        fflush(stdout);
 
-    printf("%s\n", encoded);
+        for(i=0; i<32; i++)
+        {
+                sprintf(&encoded[itr++], "%01X", hash[i] & 0xF0);
+                sprintf(&encoded[itr++], "%01X", hash[i] & 0x0F);
+        }
+
+        encoded[itr] = '\0';
+
+        return encoded;
 }

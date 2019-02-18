@@ -1,5 +1,5 @@
 CC = gcc
-FLAGS = -DSERVER_DEBUG=1 -DCLIENT_DEBUG=0
+FLAGS = -DSERVER_DEBUG=1 -DCLIENT_DEBUG=1
 
 default : main
 	rm bin/*
@@ -7,9 +7,9 @@ default : main
 	export PATH=$(PATH):$(PWD)/bin/
 	make clean
 
-main : commonutil.o clienthandler.o clientutil.o serverhandler.o serverutil.o log.o aes256.o payload.o base64.o
-	CC $(FLAGS) ircserver.c commonutil.o serverhandler.o serverutil.o log.o aes256.o payload.o base64.o -lprotobuf-c -o server
-	CC $(FLAGS) ircclient.c commonutil.o clienthandler.o clientutil.o log.o aes256.o payload.o base64.o -lprotobuf-c -o client
+main : commonutil.o clienthandler.o clientutil.o serverhandler.o serverutil.o log.o aes256.o payload.o base64.o sha256.o
+	CC $(FLAGS) ircserver.c commonutil.o serverhandler.o serverutil.o log.o aes256.o payload.o base64.o sha256.o -lprotobuf-c -o server
+	CC $(FLAGS) ircclient.c commonutil.o clienthandler.o clientutil.o log.o aes256.o payload.o base64.o sha256.o -lprotobuf-c -o client
 
 commonutil.o : utilities/common/commonutil.c include/commonutil.h log.o
 	CC -c $(FLAGS) utilities/common/commonutil.c
@@ -35,8 +35,13 @@ aes256.o: utilities/crypto/aes256.c include/aes256.h
 base64.o: utilities/crypto/base64.c include/base64.h
 	CC -c $(FLAGS) utilities/crypto/base64.c
 
+sha256.o: utilities/crypto/sha256.c include/sha256.h
+	CC -c $(FLAGS) utilities/crypto/sha256.c
+
 payload.o: protobufs/payload.pb-c.c protobufs/payload.pb-c.h
 	CC -c $(FLAGS) protobufs/payload.pb-c.c -o payload.o
 
 clean: 
+	rm -rf logs
+	mkdir logs
 	rm *.o

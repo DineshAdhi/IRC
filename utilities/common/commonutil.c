@@ -40,7 +40,7 @@ int GENERATE_RANDOM()
         return r % RANDOMLEN;
 }
 
-void printKey(uint8_t *key, int len)
+char* printKey(uint8_t *key, int len)
 {
         int i;
 
@@ -54,6 +54,8 @@ void printKey(uint8_t *key, int len)
         }
 
         log_debug("KEY : %s", hash);
+
+        return hash;
 }
 
 int createSocket()
@@ -185,7 +187,7 @@ int readconnection(Connection *c, MessageType mtype)
         if(c->len == 0)
         {
                 log_info("[%s][CLIENT DISCONNECTED]", c->sid);
-                return FAILURE;
+                return READ_FAILURE;
         }
 
         if(c->secure == NOT_SECURE && c->handshakedone == HANDSHAKE_NOT_DONE)
@@ -197,9 +199,19 @@ int readconnection(Connection *c, MessageType mtype)
                 }
         }
 
-        c->writable = WRITABLE;
+        //c->writable = WRITABLE;
 
         return SUCCESS;
+}
+
+char* readFromStdin()
+{
+        char *buffer = (char *) calloc(MAX_STDIN_INPUT, sizeof(char));
+        size_t len = read(STDERR_FILENO, buffer, MAX_STDIN_INPUT);
+
+        buffer[len - 1] = '\0';
+
+        return buffer;
 }
 
 int writeconnection(Connection *c)

@@ -49,6 +49,7 @@ void handle_io_server_handshake(Connection *c)
                                 c->sharedkey = resolveDFHKey(c->randomkey, c->oppdfhkey);
                                 log_debug("[%s][SERVER SHARED KEY]", c->sid); printKey(c->sharedkey, KEYLENGTH);
                                 c->stage = MESSAGE_TYPE__serverhello;
+                                c->writable = WRITABLE;
                         }
                         else 
                         {
@@ -69,7 +70,7 @@ void handle_io_server_handshake(Connection *c)
 
                         if(writeconnection(c) == SUCCESS)
                         {
-
+                                
                         }
                         else 
                         {
@@ -91,6 +92,7 @@ void handle_io_server_handshake(Connection *c)
                                 {
                                         
                                         log_debug("[%s][SHARED KEY VERIFICATION SUCCESS]", c->sid);
+                                        c->writable = WRITABLE;
                                 }
                                 else 
                                 {
@@ -171,7 +173,7 @@ void handle_io_server(int id, int cfd)
                 return;
         }
 
-        if(readconnection(c, MESSAGE_TYPE__unknownstage) == FAILURE)
+        if(readconnection(c, MESSAGE_TYPE__unknownstage) == READ_FAILURE)
         {
                 deregisterClient(c);
                 return;
