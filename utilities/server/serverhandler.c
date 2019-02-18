@@ -173,11 +173,12 @@ void handle_io_server(int id, int cfd)
                 return;
         }
 
-        if(readconnection(c, MESSAGE_TYPE__unknownstage) == READ_FAILURE)
+        if(readconnection(c, MESSAGE_TYPE__unknownstage) == FAILURE)
         {
                 deregisterClient(c);
                 return;
         }
+        
 
         IRCPayload *pload = c->payload;
         IRCMessage *msg = pload->data;
@@ -186,6 +187,8 @@ void handle_io_server(int id, int cfd)
         {
                 case MESSAGE_TYPE__auth:
                 {
+                        log_info("[RECEIVED REQUEST FOR AUTH]");
+                        log_info("[USER ID : %s][PASS : %s]", msg->userconfig->id, msg->userconfig->password);
                         break;
                 }
 

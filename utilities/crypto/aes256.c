@@ -375,10 +375,10 @@ int wrapper_aes256_decrypt(AES_WRAPPER *w)
      for(i=0; i<w->length; i++)
      {
            if(w->plain[i] == 0x00)
-                  break;
+                  return i;
      }
 
-     return i;
+     return w->length;
 }
 
 void conn_wrapper_aes256_encrypt(Connection *c)

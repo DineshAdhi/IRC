@@ -12,11 +12,6 @@
 #include "../../include/clientutil.h"
 #include "../../include/log.h"
 
-void handle_stdin_data()
-{
-      char *stdinbuffer = (char *) calloc(MAX_STDIN_INPUT, sizeof(char));
-      int bytes = read(STDIN_FILENO, stdinbuffer, MAX_STDIN_INPUT);
-}
 
 int initiateReconnect()
 {
@@ -100,7 +95,6 @@ void handle_io_client_handshake()
                   if(writeconnection(serverconn) == SUCCESS)
                   {
                         log_debug("[SHARED KEY EXCHANGE DONE]");
-                        serverconn->writable = WRITABLE;
                   }
                   else 
                   {
@@ -116,10 +110,12 @@ void handle_io_client_handshake()
                   if(readconnection(serverconn, MESSAGE_TYPE__unknownstage) == SUCCESS)
                   {
                         serverconn->securekey = (uint8_t *) serverconn->payload->data->key;
+                        serverconn->aeswrapper = init_aes256_wrapper(serverconn->securekey);
                         serverconn->stage = MESSAGE_TYPE__unknownstage;
                         serverconn->handshakedone = HANDSHAKE_DONE;
                         log_debug("[RECEIVED MASTER SECRET]");
                         serverconn->writable = WRITABLE;
+                        printKey(serverconn->securekey, KEYLENGTH);
                         printMessage("Connected to IRCServer [HANDSHAKE SUCCESFULLY ATTEMPTED]");
                   }
                   else 
@@ -147,6 +143,7 @@ void handle_io_client_handshake()
 
 void handle_io_client()
 {
+
       if(serverconn->registered == NOT_REGISTERED)
       {
             log_info("[EXCEPTION WHILE MAKING CONNECTION][CONNECTION NOT REGISTERED");
@@ -167,14 +164,25 @@ void handle_io_client()
                   user_config__init(userconfig);
                   userconfig->id = prompt(">> UserID : ");
                   userconfig->password = sha256(prompt(">> Password : "));
-
                   saveConfigFile();
-                  serverconn->writable = NOT_WRITABLE;
+            }
+
+            log_info("[Userid - %s][Pass - %s]", userconfig->id, userconfig->password);
+
+            IRCMessage *msg = (IRCMessage *) calloc(1, sizeof(IRCMessage));
+            ircmessage__init(msg);
+            msg->userconfig = userconfig;
+            serverconn->stage = MESSAGE_TYPE__auth;
+            wrapConnection(serverconn, msg);
+
+            if(writeconnection(serverconn) == SUCCESS)
+            {
+                  log_info("[SENT MESSAGE FOR AUTHENTICATION]");   
             }
             else 
             {
-                  log_info("[Userid - %s]", userconfig->id);
-                  serverconn->writable = NOT_WRITABLE;
+                  log_info("[ERROR WHILE SENDING MESSAGE FOR AUTHENTICATION]");
+                  deregisterServer();
             }
       }
 }

@@ -182,7 +182,7 @@ void preparefds_client(fd_set *read_fds, fd_set *write_fds, fd_set *except_fds)
             FD_SET(serverconn->fd, write_fds);
       }
 
-      FD_SET(STDIN_FILENO, read_fds);
+      // FD_SET(STDIN_FILENO, read_fds);
 }
 
 void deregisterServer()

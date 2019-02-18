@@ -142,7 +142,7 @@ void   user_config__free_unpacked
   assert(message->base.descriptor == &user_config__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-static const ProtobufCFieldDescriptor ircmessage__field_descriptors[3] =
+static const ProtobufCFieldDescriptor ircmessage__field_descriptors[2] =
 {
   {
     "key",
@@ -157,39 +157,27 @@ static const ProtobufCFieldDescriptor ircmessage__field_descriptors[3] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "username",
-    2,
+    "userconfig",
+    4,
     PROTOBUF_C_LABEL_NONE,
-    PROTOBUF_C_TYPE_STRING,
+    PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
-    offsetof(IRCMessage, username),
+    offsetof(IRCMessage, userconfig),
+    &user_config__descriptor,
     NULL,
-    &protobuf_c_empty_string,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "password",
-    3,
-    PROTOBUF_C_LABEL_NONE,
-    PROTOBUF_C_TYPE_STRING,
-    0,   /* quantifier_offset */
-    offsetof(IRCMessage, password),
-    NULL,
-    &protobuf_c_empty_string,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
 static const unsigned ircmessage__field_indices_by_name[] = {
   0,   /* field[0] = key */
-  2,   /* field[2] = password */
-  1,   /* field[1] = username */
+  1,   /* field[1] = userconfig */
 };
-static const ProtobufCIntRange ircmessage__number_ranges[1 + 1] =
+static const ProtobufCIntRange ircmessage__number_ranges[2 + 1] =
 {
   { 1, 0 },
-  { 0, 3 }
+  { 4, 1 },
+  { 0, 2 }
 };
 const ProtobufCMessageDescriptor ircmessage__descriptor =
 {
@@ -199,10 +187,10 @@ const ProtobufCMessageDescriptor ircmessage__descriptor =
   "IRCMessage",
   "",
   sizeof(IRCMessage),
-  3,
+  2,
   ircmessage__field_descriptors,
   ircmessage__field_indices_by_name,
-  1,  ircmessage__number_ranges,
+  2,  ircmessage__number_ranges,
   (ProtobufCMessageInit) ircmessage__init,
   NULL,NULL,NULL    /* reserved[123] */
 };

@@ -14,8 +14,7 @@ enum MessageType {
 
 message IRCMessage {
     string key = 1;
-    string username = 2;
-    string password = 3;
+    UserConfig userconfig = 4;
 }
 
 message IRCPayload {

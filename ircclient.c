@@ -36,11 +36,6 @@ int main()
                   
                   default:
 
-                     if(FD_ISSET(STDIN_FILENO, &read_fds))
-                     {
-                           handle_stdin_data();
-                     }
-
                      if(FD_ISSET(serverconn->fd, &read_fds))
                      {
                               handle_io_client();

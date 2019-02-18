@@ -41,12 +41,11 @@ struct  _IRCMessage
 {
   ProtobufCMessage base;
   char *key;
-  char *username;
-  char *password;
+  UserConfig *userconfig;
 };
 #define IRCMESSAGE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&ircmessage__descriptor) \
-    , (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string }
+    , (char *)protobuf_c_empty_string, NULL }
 
 
 struct  _IRCPayload
