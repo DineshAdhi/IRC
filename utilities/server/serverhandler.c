@@ -45,10 +45,11 @@ void handle_io_server_handshake(Connection *c)
                 {
                         if(readconnection(c, MESSAGE_TYPE__serverhello) == SUCCESS)
                         {
-                                c->oppdfhkey = (uint8_t *) c->payload->data->dfhkey;
+                                c->oppdfhkey = (uint8_t *) c->payload->data->key;
                                 c->sharedkey = resolveDFHKey(c->randomkey, c->oppdfhkey);
                                 log_debug("[%s][SERVER SHARED KEY]", c->sid); printKey(c->sharedkey, KEYLENGTH);
                                 c->stage = MESSAGE_TYPE__serverhello;
+                                c->writable = WRITABLE;
                         }
                         else 
                         {
@@ -62,14 +63,14 @@ void handle_io_server_handshake(Connection *c)
                 {
                         IRCMessage *ircmessage = (IRCMessage *) calloc(1, sizeof(IRCMessage));
                         ircmessage__init(ircmessage);
-                        ircmessage->dfhkey = (char *)createDFHKey(c->randomkey);
+                        ircmessage->key = (char *)createDFHKey(c->randomkey);
                         c->stage = MESSAGE_TYPE__keyexchange;
 
                         wrapConnection(c, ircmessage);
 
                         if(writeconnection(c) == SUCCESS)
                         {
-
+                                
                         }
                         else 
                         {
@@ -91,6 +92,7 @@ void handle_io_server_handshake(Connection *c)
                                 {
                                         
                                         log_debug("[%s][SHARED KEY VERIFICATION SUCCESS]", c->sid);
+                                        c->writable = WRITABLE;
                                 }
                                 else 
                                 {
@@ -98,7 +100,7 @@ void handle_io_server_handshake(Connection *c)
                                         deregisterClient(c);
                                 }
                                 
-                                printKey((uint8_t *)c->payload->data->sharedkey, KEYLENGTH);
+                                printKey((uint8_t *)c->payload->data->key, KEYLENGTH);
                         }
                         else 
                         {
@@ -115,7 +117,7 @@ void handle_io_server_handshake(Connection *c)
                         
                         IRCMessage *ircmessage = (IRCMessage *) calloc(1, sizeof(IRCMessage));
                         ircmessage__init(ircmessage);
-                        ircmessage->securekey = (char *) c->securekey;
+                        ircmessage->key = (char *) c->securekey;
                         c->stage = MESSAGE_TYPE__unknownstage;
 
                         wrapConnection(c, ircmessage);
@@ -147,6 +149,11 @@ void handle_io_server_handshake(Connection *c)
         }
 }
 
+void handle_io_server_auth(Connection *c)
+{
+
+}
+
 void handle_io_server(int id, int cfd)
 {
         Connection *c = &conns[id];
@@ -155,5 +162,44 @@ void handle_io_server(int id, int cfd)
         {
                 handle_io_server_handshake(c);
                 return;
+        }
+
+        if(c->writable == WRITABLE)
+        {
+                if(writeconnection(c) == FAILURE)
+                {
+                        log_error("[%s][ERROR WHILE WRITING TO CONNECTION]");
+                }
+                return;
+        }
+
+        if(readconnection(c, MESSAGE_TYPE__unknownstage) == FAILURE)
+        {
+                deregisterClient(c);
+                return;
+        }
+        
+
+        IRCPayload *pload = c->payload;
+        IRCMessage *msg = pload->data;
+
+        switch(pload->mtype)
+        {
+                case MESSAGE_TYPE__auth:
+                {
+                        log_info("[RECEIVED REQUEST FOR AUTH]");
+                        log_info("[USER ID : %s][PASS : %s]", msg->userconfig->id, msg->userconfig->password);
+                        break;
+                }
+
+                case MESSAGE_TYPE__signup:
+                {
+                        break;
+                }
+
+                default:
+                   log_error("[%s][MTYPE UNKNOWN]", c->sid);
+                   deregisterClient(c);
+                   break;
         }
 }

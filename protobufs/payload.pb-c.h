@@ -17,6 +17,7 @@ PROTOBUF_C__BEGIN_DECLS
 
 typedef struct _IRCMessage IRCMessage;
 typedef struct _IRCPayload IRCPayload;
+typedef struct _UserConfig UserConfig;
 
 
 /* --- enums --- */
@@ -28,7 +29,9 @@ typedef enum _MessageType {
   MESSAGE_TYPE__serverhello = 3,
   MESSAGE_TYPE__keyexchange = 4,
   MESSAGE_TYPE__handshakedone = 5,
-  MESSAGE_TYPE__unknownstage = 6
+  MESSAGE_TYPE__unknownstage = 6,
+  MESSAGE_TYPE__auth = 7,
+  MESSAGE_TYPE__signup = 8
     PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(MESSAGE_TYPE)
 } MessageType;
 
@@ -37,13 +40,12 @@ typedef enum _MessageType {
 struct  _IRCMessage
 {
   ProtobufCMessage base;
-  char *dfhkey;
-  char *sharedkey;
-  char *securekey;
+  char *key;
+  UserConfig *userconfig;
 };
 #define IRCMESSAGE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&ircmessage__descriptor) \
-    , (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string }
+    , (char *)protobuf_c_empty_string, NULL }
 
 
 struct  _IRCPayload
@@ -55,6 +57,17 @@ struct  _IRCPayload
 #define IRCPAYLOAD__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&ircpayload__descriptor) \
     , NULL, MESSAGE_TYPE__userlist }
+
+
+struct  _UserConfig
+{
+  ProtobufCMessage base;
+  char *id;
+  char *password;
+};
+#define USER_CONFIG__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&user_config__descriptor) \
+    , (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string }
 
 
 /* IRCMessage methods */
@@ -95,6 +108,25 @@ IRCPayload *
 void   ircpayload__free_unpacked
                      (IRCPayload *message,
                       ProtobufCAllocator *allocator);
+/* UserConfig methods */
+void   user_config__init
+                     (UserConfig         *message);
+size_t user_config__get_packed_size
+                     (const UserConfig   *message);
+size_t user_config__pack
+                     (const UserConfig   *message,
+                      uint8_t             *out);
+size_t user_config__pack_to_buffer
+                     (const UserConfig   *message,
+                      ProtobufCBuffer     *buffer);
+UserConfig *
+       user_config__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   user_config__free_unpacked
+                     (UserConfig *message,
+                      ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
 typedef void (*IRCMessage_Closure)
@@ -102,6 +134,9 @@ typedef void (*IRCMessage_Closure)
                   void *closure_data);
 typedef void (*IRCPayload_Closure)
                  (const IRCPayload *message,
+                  void *closure_data);
+typedef void (*UserConfig_Closure)
+                 (const UserConfig *message,
                   void *closure_data);
 
 /* --- services --- */
@@ -112,6 +147,7 @@ typedef void (*IRCPayload_Closure)
 extern const ProtobufCEnumDescriptor    message_type__descriptor;
 extern const ProtobufCMessageDescriptor ircmessage__descriptor;
 extern const ProtobufCMessageDescriptor ircpayload__descriptor;
+extern const ProtobufCMessageDescriptor user_config__descriptor;
 
 PROTOBUF_C__END_DECLS
 

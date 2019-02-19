@@ -40,21 +40,22 @@ int GENERATE_RANDOM()
         return r % RANDOMLEN;
 }
 
-void printKey(uint8_t *key, int len)
+char* printKey(uint8_t *key, int len)
 {
         int i;
 
-        char *hash = (char *) calloc(len, 2);
+        char *hash = (char *) calloc(len, 3);
         int itr = 0;
 
-        for(i=0; i<len * 2; i=i+2)
+        for(i=0; i<len * 3; i=i+3)
         {
-                printf("%02X ", key[itr++]);
+                sprintf(&hash[i], "%02X  ", key[itr++]);
                 fflush(stdout);
         }
 
-        printf("\n");
-        fflush(stdout);
+        log_debug("KEY : %s", hash);
+
+        return hash;
 }
 
 int createSocket()
@@ -179,7 +180,7 @@ int readconnection(Connection *c, MessageType mtype)
 
         if(c->payload == NULL)
         {
-                log_info("[%s][EXCEPTION WHILE READING][PAYLOAD_NULL]", c->sid);
+                log_error("[%s][EXCEPTION WHILE READING][PAYLOAD_NULL]", c->sid);
                 return FAILURE;
         }
 
@@ -189,7 +190,7 @@ int readconnection(Connection *c, MessageType mtype)
                 return FAILURE;
         }
 
-        if(c->secure == NOT_SECURE)
+        if(c->secure == NOT_SECURE && c->handshakedone == HANDSHAKE_NOT_DONE)
         {
                 if(c->payload->mtype != mtype)
                 {
@@ -198,9 +199,19 @@ int readconnection(Connection *c, MessageType mtype)
                 }
         }
 
-        c->writable = WRITABLE;
+        //c->writable = WRITABLE;
 
         return SUCCESS;
+}
+
+char* readFromStdin()
+{
+        char *buffer = (char *) calloc(MAX_STDIN_INPUT, sizeof(char));
+        size_t len = read(STDERR_FILENO, buffer, MAX_STDIN_INPUT);
+
+        buffer[len - 1] = '\0';
+
+        return buffer;
 }
 
 int writeconnection(Connection *c)

@@ -23,12 +23,16 @@ enum { LOG_TRACE, LOG_DEBUG, LOG_INFO, LOG_WARN, LOG_ERROR, LOG_FATAL };
 #define log_warn(...)  log_log(LOG_WARN,  __FILE__, __LINE__, __VA_ARGS__)
 #define log_error(...) log_log(LOG_ERROR, __FILE__, __LINE__, __VA_ARGS__)
 #define log_fatal(...) log_log(LOG_FATAL, __FILE__, __LINE__, __VA_ARGS__)
+#define printMessage(...) _print(__VA_ARGS__)
+#define prompt(...) _prompt(__VA_ARGS__)
 
 void log_set_udata(void *udata);
 void log_set_lock(log_LockFn fn);
 void log_set_fp(FILE *fp);
 void log_set_level(int level);
 void log_set_quiet(int enable);
+void _print(const char *fmt, ...);
+char* _prompt(const char *fmt, ...);
 
 void log_log(int level, const char *file, int line, const char *fmt, ...);
 

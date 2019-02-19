@@ -1,6 +1,6 @@
 #include<stdio.h>
 
-#include"../../utilities/crypto/sha256.h"
+#include"../../include/sha256.h"
 
 
 
@@ -11,6 +11,13 @@ int main()
 
     sha256(hash, name);
 
-    printf("%s", hash);
+    printf("%s\n", hash);
+
+    char *n = "dinesh";
+    char h[65] = {};
+
+    sha256(h, n);
+
+    printf("%s", h);
 }
 

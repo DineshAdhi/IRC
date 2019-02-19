@@ -44,7 +44,7 @@ int main()
 
                             if(FD_ISSET(serverfd, &read_fds))
                             {
-                                   int remotefd = handle_incoming_connection(serverfd);
+                                   handle_incoming_connection(serverfd);
                             }
 
                             for(i=0; i<maxfd; i++)

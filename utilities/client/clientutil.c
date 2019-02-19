@@ -15,7 +15,67 @@ void terminateClient()
 {
         log_info("[IRCCLIENT][SIGINT/SIGTSTP RECEIVED][HALTING SERVER]");
         close(serverconn->fd);
+        fclose(clientlog);
         exit(1);
+}
+
+void loadUserConfigFile()
+{
+      configfile = fopen(USERCONFIG_FILE_PATH, "r");
+
+      if(configfile == NULL)
+      {
+            log_info("[USER CONFIG IS EMPTY]");
+            isAuthRequired = REQUIRED;
+            return;
+      }
+
+      fseek(configfile, 0, SEEK_END);
+      size_t file_size = ftell(configfile);
+
+      if(file_size == 0)
+      {
+            log_info("[USER CONFIG IS EMPTY]");
+            isAuthRequired = REQUIRED;
+            return;
+      }
+
+      uint8_t buffer[file_size]; 
+      char ch;
+      int itr = 0;
+      fseek(configfile, 0, SEEK_SET);
+
+      while( (ch = fgetc(configfile)) != EOF){
+            buffer[itr++] = (uint8_t) ch;
+      }
+
+      userconfig = user_config__unpack(NULL, file_size, buffer);
+
+      if(userconfig == NULL)
+      {
+            log_info("[USER CONFIG FILE CORRUPTED]");
+            isAuthRequired = REQUIRED;
+      }
+      else
+      {
+            log_info("CONFIG FILE LOADED SUCCESSFULLY FOR USER : %s", userconfig->id);
+            isAuthRequired = NOT_REQUIRED;
+      }
+
+      fclose(configfile);
+}
+
+void saveConfigFile()
+{
+      configfile = fopen(USERCONFIG_FILE_PATH, "w");
+
+      size_t len = user_config__get_packed_size(userconfig);
+      uint8_t buffer[len];
+
+      user_config__pack(userconfig, buffer);
+
+      fwrite(buffer, len, 1, configfile);
+      fclose(configfile);
 }
 
 void initiateIRCClient()
@@ -43,9 +103,24 @@ void initiateIRCClient()
         serverconn->writable = NOT_WRITABLE;
         serverconn->stage = UNKNOWN_STAGE;
         serverconn->registered = NOT_REGISTERED;
+        serverconn->authdone = UNAUTHENTICATED;
         serverconn->sid = "111111";
 
+        userconfig = (UserConfig *) calloc(1, sizeof(UserConfig));
+
         initializeCommonUtils();
+
+        clientlog = fopen(CLIENT_LOGFILE_PATH, "w+");
+
+        #if defined(CLIENT_DEBUG) && (CLIENT_DEBUG == 1)
+                  log_set_quiet(0);
+        #else
+                  log_set_quiet(1);
+        #endif
+      
+        loadUserConfigFile();
+
+        log_set_fp(clientlog);
 }
 
 struct sockaddr_in getremoteserveraddr()
@@ -118,7 +193,7 @@ void preparefds_client(fd_set *read_fds, fd_set *write_fds, fd_set *except_fds)
             FD_SET(serverconn->fd, write_fds);
       }
 
-      FD_SET(STDIN_FILENO, read_fds);
+       FD_SET(STDIN_FILENO, read_fds);
 }
 
 void deregisterServer()

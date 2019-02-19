@@ -7,6 +7,7 @@
 #include<signal.h>
 
 #include "commonutil.h"
+#include "../protobufs/payload.pb-c.h"
 
 #define REMOTE_SERVER_IP "127.0.0.1"
 #define REMOTE_SERVER_DOMAIN "localhost"
@@ -14,6 +15,10 @@
 #define MAX_CONNECT_RETRY 10
 
 Connection *serverconn;
+FILE *clientlog;
+FILE *configfile;
+UserConfig *userconfig;
+int isAuthRequired;
 
 #define initiate_connect_to_server() _connect_to_server(!RECONNECT) 
 #define connect_to_server(reconnect) _connect_to_server(reconnect) 
@@ -23,3 +28,4 @@ int _connect_to_server(int reconnect);
 void preparefds_client(fd_set *read_fds, fd_set *write_fds, fd_set *except_fds);
 void initiateIRCClient();
 void deregisterServer();
+void saveConfigFile();

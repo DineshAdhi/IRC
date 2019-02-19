@@ -1,5 +1,6 @@
 #include<stdlib.h>
-#include<stdio.h>  
+#include<stdio.h> 
+#include<string.h>
 #include<arpa/inet.h>
 #include<sys/types.h>  
 #include<sys/socket.h>  
@@ -8,13 +9,33 @@
 
 #include"../../include/commonutil.h"
 #include"../../include/aes256.h"
+#include"../../include/sha256.h"
 #include "../../include/clientutil.h"
 #include "../../include/log.h"
 
 void handle_stdin_data()
 {
-      char *stdinbuffer = (char *) calloc(MAX_STDIN_INPUT, sizeof(char));
-      int bytes = read(STDIN_FILENO, stdinbuffer, MAX_STDIN_INPUT);
+      char *buffer = prompt("");
+
+      if(strcmp("clear", buffer) == 0)
+      {
+            system("@cls||clear");
+            return;
+      }
+
+      if(strcmp("ls", buffer) == 0)
+      {
+            system("ls");
+            return;
+      }
+
+      if(strcmp("exit", buffer) == 0)
+      {
+            deregisterServer();
+            exit(1);
+      }
+
+      printMessage("%s", buffer);
 }
 
 int initiateReconnect()
@@ -54,7 +75,7 @@ void handle_io_client_handshake()
             {
                   IRCMessage *message = (IRCMessage *) calloc(1, sizeof(IRCMessage));
                   ircmessage__init(message);
-                  message->dfhkey = (char *) createDFHKey(serverconn->randomkey);
+                  message->key = (char *) createDFHKey(serverconn->randomkey);
                   serverconn->stage = MESSAGE_TYPE__serverhello;
                   wrapConnection(serverconn, message);
 
@@ -70,7 +91,7 @@ void handle_io_client_handshake()
             {
                   if(readconnection(serverconn, MESSAGE_TYPE__keyexchange) == SUCCESS)
                   {
-                        serverconn->oppdfhkey = (uint8_t *) serverconn->payload->data->dfhkey;
+                        serverconn->oppdfhkey = (uint8_t *) serverconn->payload->data->key;
                         serverconn->sharedkey = resolveDFHKey(serverconn->randomkey, serverconn->oppdfhkey);
                         log_debug("[CLIENT SHARED KEY]"); printKey(serverconn->sharedkey, KEYLENGTH);
                         serverconn->stage = MESSAGE_TYPE__keyexchange;
@@ -89,7 +110,7 @@ void handle_io_client_handshake()
             {
                   IRCMessage *msg = (IRCMessage *) calloc(1, sizeof(IRCMessage));
                   ircmessage__init(msg);
-                  msg->sharedkey =(char *) serverconn->sharedkey;
+                  msg->key =(char *) serverconn->sharedkey;
                   
                   serverconn->secure = SECURE;
                   serverconn->aeswrapper = init_aes256_wrapper(serverconn->sharedkey);
@@ -113,11 +134,14 @@ void handle_io_client_handshake()
             {
                   if(readconnection(serverconn, MESSAGE_TYPE__unknownstage) == SUCCESS)
                   {
-                        serverconn->securekey = (uint8_t *) serverconn->payload->data->securekey;
+                        serverconn->securekey = (uint8_t *) serverconn->payload->data->key;
+                        serverconn->aeswrapper = init_aes256_wrapper(serverconn->securekey);
                         serverconn->stage = MESSAGE_TYPE__unknownstage;
                         serverconn->handshakedone = HANDSHAKE_DONE;
                         log_debug("[RECEIVED MASTER SECRET]");
+                        serverconn->writable = WRITABLE;
                         printKey(serverconn->securekey, KEYLENGTH);
+                        printMessage("Connected to IRCServer [HANDSHAKE SUCCESFULLY ATTEMPTED]");
                   }
                   else 
                   {
@@ -144,6 +168,7 @@ void handle_io_client_handshake()
 
 void handle_io_client()
 {
+
       if(serverconn->registered == NOT_REGISTERED)
       {
             log_info("[EXCEPTION WHILE MAKING CONNECTION][CONNECTION NOT REGISTERED");
@@ -156,5 +181,34 @@ void handle_io_client()
             return;
       }
 
+      if(serverconn->authdone == UNAUTHENTICATED)
+      {
+            if(isAuthRequired == REQUIRED)
+            {
+                  userconfig = (UserConfig *) calloc(1, sizeof(UserConfig));
+                  user_config__init(userconfig);
+                  userconfig->id = prompt(">> UserID : ");
+                  userconfig->password = sha256(prompt(">> Password : "));
+                  saveConfigFile();
+            }
 
+            log_info("[Userid - %s][Pass - %s]", userconfig->id, userconfig->password);
+            printMessage("You are now logged in as %s. Your config file can be found in config/config.irc", userconfig->id);
+
+            IRCMessage *msg = (IRCMessage *) calloc(1, sizeof(IRCMessage));
+            ircmessage__init(msg);
+            msg->userconfig = userconfig;
+            serverconn->stage = MESSAGE_TYPE__auth;
+            wrapConnection(serverconn, msg);
+
+            if(writeconnection(serverconn) == SUCCESS)
+            {
+                  log_info("[SENT MESSAGE FOR AUTHENTICATION]");   
+            }
+            else 
+            {
+                  log_info("[ERROR WHILE SENDING MESSAGE FOR AUTHENTICATION]");
+                  deregisterServer();
+            }
+      }
 }

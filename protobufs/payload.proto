@@ -8,15 +8,21 @@ enum MessageType {
     keyexchange = 4;
     handshakedone = 5;
     unknownstage = 6;
+    auth = 7;
+    signup = 8;
 }
 
 message IRCMessage {
-    string dfhkey = 1;
-    string sharedkey = 2;
-    string securekey = 3;
+    string key = 1;
+    UserConfig userconfig = 4;
 }
 
 message IRCPayload {
     IRCMessage data= 1;
     MessageType mtype = 2; 
+}
+
+message UserConfig {
+    string id = 1;
+    string password = 2;
 }

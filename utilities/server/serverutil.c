@@ -26,6 +26,7 @@ void terminateServer()
         }
         
         close(serverfd);
+        fclose(serverlog);
         exit(1);
 }
 
@@ -62,6 +63,18 @@ void initializeIRCServer()
         }
 
         initializeCommonUtils();
+
+        serverlog = fopen(SERVER_LOGFILE_PATH, "w+");
+     
+      #if defined(SERVER_DEBUG) && (SERVER_DEBUG == 1)
+            fflush(stdout);
+            log_set_quiet(0);
+      #else
+            fflush(stdout);
+            log_set_quiet(1);
+      #endif
+
+        log_set_fp(serverlog);
 }
 
 struct sockaddr_in* getserversockAddr()
@@ -144,7 +157,7 @@ int registerClient(char *ip, int port, int remotefd)
                 close(remotefd);
                 return FAILURE;
         }
-
+        
         conns[i].ip = ip;
         conns[i].port = port;
         conns[i].fd = remotefd;
@@ -153,6 +166,7 @@ int registerClient(char *ip, int port, int remotefd)
         conns[i].stage = MESSAGE_TYPE__clienthello;
         conns[i].secure = NOT_SECURE;
         conns[i].handshakedone = HANDSHAKE_NOT_DONE;
+        conns[i].authdone = UNAUTHENTICATED;
         conns[i].sid = createSessionId();
         conns[i].randomkey = createRandomKey();
 
@@ -174,7 +188,7 @@ int verifySharedKey(Connection *c)
 
         for(i=0; i<KEYLENGTH; i++)
         {
-                if(c->sharedkey[i] != c->payload->data->sharedkey[i])
+                if(c->sharedkey[i] != c->payload->data->key[i])
                 {
                         return FAILURE;
                 }
@@ -182,5 +196,7 @@ int verifySharedKey(Connection *c)
 
         return SUCCESS;
 }
+
+
 
 

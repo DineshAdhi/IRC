@@ -15,7 +15,17 @@
 #define CLIENT_MAX 1000
 #define MAX_CLIENT_BACKLOG 1000
 
+typedef struct {
+    char *sid; 
+    char *username;
+    Connection **conns;
+    int n_conn;
+    int count;
+} UserSessions;
+
 Connection *conns;
+UserSessions *sessions;
+FILE *serverlog;
 
 int serverfd;
 
