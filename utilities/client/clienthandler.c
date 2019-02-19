@@ -1,5 +1,6 @@
 #include<stdlib.h>
-#include<stdio.h>  
+#include<stdio.h> 
+#include<string.h>
 #include<arpa/inet.h>
 #include<sys/types.h>  
 #include<sys/socket.h>  
@@ -12,6 +13,30 @@
 #include "../../include/clientutil.h"
 #include "../../include/log.h"
 
+void handle_stdin_data()
+{
+      char *buffer = prompt("");
+
+      if(strcmp("clear", buffer) == 0)
+      {
+            system("@cls||clear");
+            return;
+      }
+
+      if(strcmp("ls", buffer) == 0)
+      {
+            system("ls");
+            return;
+      }
+
+      if(strcmp("exit", buffer) == 0)
+      {
+            deregisterServer();
+            exit(1);
+      }
+
+      printMessage("%s", buffer);
+}
 
 int initiateReconnect()
 {
@@ -168,6 +193,7 @@ void handle_io_client()
             }
 
             log_info("[Userid - %s][Pass - %s]", userconfig->id, userconfig->password);
+            printMessage("You are now logged in as %s. Your config file can be found in config/config.irc", userconfig->id);
 
             IRCMessage *msg = (IRCMessage *) calloc(1, sizeof(IRCMessage));
             ircmessage__init(msg);

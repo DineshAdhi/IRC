@@ -50,7 +50,17 @@ void loadUserConfigFile()
       }
 
       userconfig = user_config__unpack(NULL, file_size, buffer);
-      isAuthRequired = NOT_REQUIRED;
+
+      if(userconfig == NULL)
+      {
+            log_info("[USER CONFIG FILE CORRUPTED]");
+            isAuthRequired = REQUIRED;
+      }
+      else
+      {
+            log_info("CONFIG FILE LOADED SUCCESSFULLY FOR USER : %s", userconfig->id);
+            isAuthRequired = NOT_REQUIRED;
+      }
 
       fclose(configfile);
 }
@@ -99,7 +109,6 @@ void initiateIRCClient()
         userconfig = (UserConfig *) calloc(1, sizeof(UserConfig));
 
         initializeCommonUtils();
-        loadUserConfigFile();
 
         clientlog = fopen(CLIENT_LOGFILE_PATH, "w+");
 
@@ -109,6 +118,8 @@ void initiateIRCClient()
                   log_set_quiet(1);
         #endif
       
+        loadUserConfigFile();
+
         log_set_fp(clientlog);
 }
 
@@ -182,7 +193,7 @@ void preparefds_client(fd_set *read_fds, fd_set *write_fds, fd_set *except_fds)
             FD_SET(serverconn->fd, write_fds);
       }
 
-      // FD_SET(STDIN_FILENO, read_fds);
+       FD_SET(STDIN_FILENO, read_fds);
 }
 
 void deregisterServer()

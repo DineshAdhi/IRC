@@ -198,7 +198,7 @@ void handle_io_server(int id, int cfd)
                 }
 
                 default:
-                   log_error("[%s][MTYPE UNKNOWN]");
+                   log_error("[%s][MTYPE UNKNOWN]", c->sid);
                    deregisterClient(c);
                    break;
         }

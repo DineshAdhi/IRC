@@ -187,7 +187,7 @@ int readconnection(Connection *c, MessageType mtype)
         if(c->len == 0)
         {
                 log_info("[%s][CLIENT DISCONNECTED]", c->sid);
-                return READ_FAILURE;
+                return FAILURE;
         }
 
         if(c->secure == NOT_SECURE && c->handshakedone == HANDSHAKE_NOT_DONE)

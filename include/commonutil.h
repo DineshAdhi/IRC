@@ -12,6 +12,8 @@
 
 #include "../protobufs/payload.pb-c.h"
 
+#define printPrompt() {printf(">> "); fflush(stdout);}
+
 #define URANDOM_FILE "/dev/urandom"
 
 #define TRUE 1
@@ -29,7 +31,7 @@
 
 #define RANDOMLEN 61
 #define KEYLENGTH 32
-#define SIDLENGTH 16  // 16 Digits + 1 for Null
+#define SIDLENGTH 16 
 
 #define DFH_G 2
 #define DFH_P 57
@@ -54,6 +56,7 @@
 #define SERVER_LOGFILE_PATH "logs/serverlogs"
 #define CLIENT_LOGFILE_PATH "logs/clientlogs"
 #define USERCONFIG_FILE_PATH "config/config.irc"
+#define DATABAST_FILE_PATH "bin/database.db"
 
 //////////////////////////////  AES Variables
 
