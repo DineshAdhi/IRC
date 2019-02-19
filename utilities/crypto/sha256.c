@@ -152,11 +152,8 @@ char* sha256(char *value)
         char *encoded = (char *) calloc(65, sizeof(char));
 
         calc_hash_sha256(hash, (uint8_t *)value, len);
-
+        
         int itr = 0;
-
-        printf("HASH : %s\n", hash);
-        fflush(stdout);
 
         for(i=0; i<32; i++)
         {
