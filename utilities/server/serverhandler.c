@@ -47,7 +47,7 @@ void handle_io_server_handshake(Connection *c)
                         {
                                 c->oppdfhkey = (uint8_t *) c->payload->data->key;
                                 c->sharedkey = resolveDFHKey(c->randomkey, c->oppdfhkey);
-                                log_debug("[%s][SERVER SHARED KEY]", c->sid); printKey(c->sharedkey, KEYLENGTH);
+                                log_debug("[%s][SERVER SHARED KEY]", c->sid); //printKey(c->sharedkey, KEYLENGTH);
                                 c->stage = MESSAGE_TYPE__serverhello;
                                 c->writable = WRITABLE;
                         }
@@ -68,11 +68,7 @@ void handle_io_server_handshake(Connection *c)
 
                         wrapConnection(c, ircmessage);
 
-                        if(writeconnection(c) == SUCCESS)
-                        {
-                                
-                        }
-                        else 
+                        if(writeconnection(c) != SUCCESS)
                         {
                                 deregisterClient(c);
                         }
@@ -90,7 +86,6 @@ void handle_io_server_handshake(Connection *c)
                         {
                                 if(verifySharedKey(c) == SUCCESS)
                                 {
-                                        
                                         log_debug("[%s][SHARED KEY VERIFICATION SUCCESS]", c->sid);
                                         c->writable = WRITABLE;
                                 }
@@ -100,7 +95,7 @@ void handle_io_server_handshake(Connection *c)
                                         deregisterClient(c);
                                 }
                                 
-                                printKey((uint8_t *)c->payload->data->key, KEYLENGTH);
+                                //printKey((uint8_t *)c->payload->data->key, KEYLENGTH);
                         }
                         else 
                         {
@@ -127,7 +122,7 @@ void handle_io_server_handshake(Connection *c)
                                 c->aeswrapper = init_aes256_wrapper((uint8_t *)c->securekey);
                                 c->handshakedone = HANDSHAKE_DONE;
                                 log_debug("[SHARED MASTER SECRET]");
-                                printKey(c->securekey, KEYLENGTH);
+                                //printKey(c->securekey, KEYLENGTH);
                         }
                         else 
                         {
@@ -194,6 +189,8 @@ void handle_io_server(int id, int cfd)
 
                 case MESSAGE_TYPE__signup:
                 {
+                        log_info("[RECIEVED SIGN UP CALL]");
+                        log_info("[SIGN UP CALL][USER ID : %s][PASS : %s]", msg->userconfig->id, msg->userconfig->password);
                         break;
                 }
 

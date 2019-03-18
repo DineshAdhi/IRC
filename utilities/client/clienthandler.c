@@ -20,13 +20,11 @@ void handle_stdin_data()
       if(strcmp("clear", buffer) == 0)
       {
             system("@cls||clear");
-            return;
       }
 
       if(strcmp("ls", buffer) == 0)
       {
             system("ls");
-            return;
       }
 
       if(strcmp("exit", buffer) == 0)
@@ -35,7 +33,10 @@ void handle_stdin_data()
             exit(1);
       }
 
-      printMessage("%s", buffer);
+      if(strcmp("cmd", buffer) == 0)
+      {
+            system("python $PWD/otp.py");
+      }
 }
 
 int initiateReconnect()
@@ -136,7 +137,7 @@ void handle_io_client_handshake()
                   {
                         serverconn->securekey = (uint8_t *) serverconn->payload->data->key;
                         serverconn->aeswrapper = init_aes256_wrapper(serverconn->securekey);
-                        serverconn->stage = MESSAGE_TYPE__unknownstage;
+                        //serverconn->stage = MESSAGE_TYPE__unknownstage;
                         serverconn->handshakedone = HANDSHAKE_DONE;
                         log_debug("[RECEIVED MASTER SECRET]");
                         serverconn->writable = WRITABLE;
@@ -148,27 +149,87 @@ void handle_io_client_handshake()
                         log_error("[ERROR WHILE READING FROM CONNECTION]");
                         deregisterServer();
                   }
-                  break;
-            }
 
-            case MESSAGE_TYPE__unknownstage:
-            {
-                  log_error("[IRCSERVER DISCONNECTED DURING HANDSHAKE]");
-                  deregisterServer();
                   break;
             }
 
             default:
             {
-                  log_debug("DEFAULT SWITCH INVOKED");
+                  log_error("[DEFAULT INVOKED - IRCSERVER DISCONNECTED DURING HANDSHAKE]");
+                  deregisterServer();
                   break;
             }
       }
 }
 
+void signupUser()
+{
+      UserConfig *signupconfig = (UserConfig *) calloc(1, sizeof(UserConfig));
+      user_config__init(signupconfig);
+      signupconfig->id = prompt(">> UserID : ");
+      signupconfig->password = sha256(prompt(">> Password : "));
+
+      IRCMessage *msg = (IRCMessage *) calloc(1, sizeof(IRCMessage));
+      ircmessage__init(msg);
+      msg->userconfig = signupconfig;
+      serverconn->stage = MESSAGE_TYPE__signup;
+      wrapConnection(serverconn, msg);
+
+      if(writeconnection(serverconn) == SUCCESS)
+      {
+            log_info("[SIGN UP][Userid - %s][Pass - %s]", signupconfig->id, signupconfig->password);
+            printMessage("[User Id - %s][Sign up call sent]", signupconfig->id);  
+      }
+      else 
+      {
+            log_error("[ERROR WHILE SENDING MESSAGE FOR AUTHENTICATION]");
+            deregisterServer();
+      }
+}
+
+void getUserDetails()
+{
+      if(isAuthRequired == REQUIRED)
+      {    
+            char *ch = prompt(">> New User (Y/N) : ");
+
+            if( !strcmp(ch, "YES") || !strcmp(ch, "yes") || !strcmp(ch, "Y") || !strcmp(ch, "y"))
+            {
+                        signupUser();
+                        return;
+            }
+
+            userconfig = (UserConfig *) calloc(1, sizeof(UserConfig));
+            user_config__init(userconfig);
+            userconfig->id = prompt(">> UserID : ");
+            userconfig->password = sha256(prompt(">> Password : "));
+            saveConfigFile();
+      }
+
+      log_info("[Userid - %s][Pass - %s]", userconfig->id, userconfig->password);
+      printMessage("You are now logged in as %s. Your config file can be found in config/config.irc", userconfig->id);
+
+      IRCMessage *msg = (IRCMessage *) calloc(1, sizeof(IRCMessage));
+      ircmessage__init(msg);
+      msg->userconfig = userconfig;
+      serverconn->stage = MESSAGE_TYPE__auth;
+      wrapConnection(serverconn, msg);
+
+      if(writeconnection(serverconn) == SUCCESS)
+      {
+            log_info("[SENT MESSAGE FOR AUTHENTICATION]");   
+      }
+      else 
+      {
+            log_error("[ERROR WHILE SENDING MESSAGE FOR AUTHENTICATION]");
+            deregisterServer();
+      }
+}
+
+
+
 void handle_io_client()
 {
-
       if(serverconn->registered == NOT_REGISTERED)
       {
             log_info("[EXCEPTION WHILE MAKING CONNECTION][CONNECTION NOT REGISTERED");
@@ -183,32 +244,26 @@ void handle_io_client()
 
       if(serverconn->authdone == UNAUTHENTICATED)
       {
-            if(isAuthRequired == REQUIRED)
+            switch(serverconn->stage)
             {
-                  userconfig = (UserConfig *) calloc(1, sizeof(UserConfig));
-                  user_config__init(userconfig);
-                  userconfig->id = prompt(">> UserID : ");
-                  userconfig->password = sha256(prompt(">> Password : "));
-                  saveConfigFile();
-            }
+                  case MESSAGE_TYPE__handshakedone:
+                  {
+                        getUserDetails();
+                        break;
+                  }
 
-            log_info("[Userid - %s][Pass - %s]", userconfig->id, userconfig->password);
-            printMessage("You are now logged in as %s. Your config file can be found in config/config.irc", userconfig->id);
+                  case MESSAGE_TYPE__auth:
+                  {
+                        break;
+                  }
 
-            IRCMessage *msg = (IRCMessage *) calloc(1, sizeof(IRCMessage));
-            ircmessage__init(msg);
-            msg->userconfig = userconfig;
-            serverconn->stage = MESSAGE_TYPE__auth;
-            wrapConnection(serverconn, msg);
-
-            if(writeconnection(serverconn) == SUCCESS)
-            {
-                  log_info("[SENT MESSAGE FOR AUTHENTICATION]");   
-            }
-            else 
-            {
-                  log_info("[ERROR WHILE SENDING MESSAGE FOR AUTHENTICATION]");
-                  deregisterServer();
+                  case MESSAGE_TYPE__signup:
+                  {
+                        break;
+                  }
+                  
+                  default: 
+                        break;
             }
       }
 }

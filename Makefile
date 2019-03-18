@@ -1,8 +1,7 @@
 CC = gcc
-FLAGS = -DSERVER_DEBUG=1 -DCLIENT_DEBUG=0
+FLAGS = -DSERVER_DEBUG=1 -DCLIENT_DEBUG=1
 
 default : main
-	rm bin/*
 	mv client server bin/
 	export PATH=$(PATH):$(PWD)/bin/
 	make clean
