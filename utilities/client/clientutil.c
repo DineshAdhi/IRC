@@ -1,5 +1,6 @@
 #include<stdlib.h>
 #include<stdio.h>  
+#include<string.h>
 #include<arpa/inet.h>
 #include<sys/types.h>  
 #include<sys/socket.h>  
@@ -10,6 +11,7 @@
 #include"../../include/commonutil.h"
 #include"../../include/log.h"
 #include"../../include/clientutil.h"
+#include"../../include/sha256.h"
 
 void terminateClient()
 {
@@ -64,6 +66,8 @@ void loadUserConfigFile()
 
       fclose(configfile);
 }
+
+
 
 void saveConfigFile()
 {

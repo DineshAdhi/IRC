@@ -68,11 +68,7 @@ void handle_io_server_handshake(Connection *c)
 
                         wrapConnection(c, ircmessage);
 
-                        if(writeconnection(c) == SUCCESS)
-                        {
-                                
-                        }
-                        else 
+                        if(writeconnection(c) != SUCCESS)
                         {
                                 deregisterClient(c);
                         }
@@ -90,7 +86,6 @@ void handle_io_server_handshake(Connection *c)
                         {
                                 if(verifySharedKey(c) == SUCCESS)
                                 {
-                                        
                                         log_debug("[%s][SHARED KEY VERIFICATION SUCCESS]", c->sid);
                                         c->writable = WRITABLE;
                                 }
@@ -194,6 +189,8 @@ void handle_io_server(int id, int cfd)
 
                 case MESSAGE_TYPE__signup:
                 {
+                        log_info("[RECIEVED SIGN UP CALL]");
+                        log_info("[SIGN UP CALL][USER ID : %s][PASS : %s]", msg->userconfig->id, msg->userconfig->password);
                         break;
                 }
 

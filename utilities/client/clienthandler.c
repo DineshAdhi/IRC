@@ -162,10 +162,43 @@ void handle_io_client_handshake()
       }
 }
 
+void signupUser()
+{
+      UserConfig *signupconfig = (UserConfig *) calloc(1, sizeof(UserConfig));
+      user_config__init(signupconfig);
+      signupconfig->id = prompt(">> UserID : ");
+      signupconfig->password = sha256(prompt(">> Password : "));
+
+      IRCMessage *msg = (IRCMessage *) calloc(1, sizeof(IRCMessage));
+      ircmessage__init(msg);
+      msg->userconfig = signupconfig;
+      serverconn->stage = MESSAGE_TYPE__signup;
+      wrapConnection(serverconn, msg);
+
+      if(writeconnection(serverconn) == SUCCESS)
+      {
+            log_info("[SIGN UP][Userid - %s][Pass - %s]", signupconfig->id, signupconfig->password);
+            printMessage("[User Id - %s][Sign up call sent]", signupconfig->id);  
+      }
+      else 
+      {
+            log_error("[ERROR WHILE SENDING MESSAGE FOR AUTHENTICATION]");
+            deregisterServer();
+      }
+}
+
 void getUserDetails()
 {
       if(isAuthRequired == REQUIRED)
-      {
+      {    
+            char *ch = prompt(">> New User (Y/N) : ");
+
+            if( !strcmp(ch, "YES") || !strcmp(ch, "yes") || !strcmp(ch, "Y") || !strcmp(ch, "y"))
+            {
+                        signupUser();
+                        return;
+            }
+
             userconfig = (UserConfig *) calloc(1, sizeof(UserConfig));
             user_config__init(userconfig);
             userconfig->id = prompt(">> UserID : ");
@@ -188,10 +221,12 @@ void getUserDetails()
       }
       else 
       {
-            log_info("[ERROR WHILE SENDING MESSAGE FOR AUTHENTICATION]");
+            log_error("[ERROR WHILE SENDING MESSAGE FOR AUTHENTICATION]");
             deregisterServer();
       }
 }
+
+
 
 void handle_io_client()
 {
@@ -218,6 +253,11 @@ void handle_io_client()
                   }
 
                   case MESSAGE_TYPE__auth:
+                  {
+                        break;
+                  }
+
+                  case MESSAGE_TYPE__signup:
                   {
                         break;
                   }
