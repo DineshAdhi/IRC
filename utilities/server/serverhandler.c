@@ -11,6 +11,7 @@
 #include"../../include/aes256.h"
 #include "../../include/commonutil.h"
 #include "../../protobufs/payload.pb-c.h"
+#include "../../include/auth.h"
 
 int handle_incoming_connection(int serverfd)
 {
@@ -191,6 +192,9 @@ void handle_io_server(int id, int cfd)
                 {
                         log_info("[RECIEVED SIGN UP CALL]");
                         log_info("[SIGN UP CALL][USER ID : %s][PASS : %s]", msg->userconfig->id, msg->userconfig->password);
+                        
+                        db_signupUser(msg->userconfig->id, msg->userconfig->password);
+
                         break;
                 }
 

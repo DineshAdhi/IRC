@@ -191,14 +191,6 @@ void getUserDetails()
 {
       if(isAuthRequired == REQUIRED)
       {    
-            char *ch = prompt(">> New User (Y/N) : ");
-
-            if( !strcmp(ch, "YES") || !strcmp(ch, "yes") || !strcmp(ch, "Y") || !strcmp(ch, "y"))
-            {
-                        signupUser();
-                        return;
-            }
-
             userconfig = (UserConfig *) calloc(1, sizeof(UserConfig));
             user_config__init(userconfig);
             userconfig->id = prompt(">> UserID : ");
@@ -248,12 +240,24 @@ void handle_io_client()
             {
                   case MESSAGE_TYPE__handshakedone:
                   {
+                        if(isAuthRequired == REQUIRED)
+                        {
+                                   char *ch = prompt(">> New User (Y/N) : ");
+
+                                    if( !strcmp(ch, "YES") || !strcmp(ch, "yes") || !strcmp(ch, "Y") || !strcmp(ch, "y"))
+                                    {
+                                                signupUser();
+                                                break;
+                                    }
+                        }
+                        
                         getUserDetails();
                         break;
                   }
 
                   case MESSAGE_TYPE__auth:
                   {
+                        
                         break;
                   }
 

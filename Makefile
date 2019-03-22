@@ -6,8 +6,8 @@ default : main
 	export PATH=$(PATH):$(PWD)/bin/
 	make clean
 
-main : commonutil.o clienthandler.o clientutil.o serverhandler.o serverutil.o log.o aes256.o payload.o base64.o sha256.o
-	CC $(FLAGS) ircserver.c commonutil.o serverhandler.o serverutil.o log.o aes256.o payload.o base64.o sha256.o -lprotobuf-c -o server
+main : commonutil.o clienthandler.o clientutil.o serverhandler.o serverutil.o log.o aes256.o payload.o base64.o sha256.o auth.o
+	CC $(FLAGS) ircserver.c commonutil.o serverhandler.o serverutil.o log.o aes256.o payload.o base64.o sha256.o auth.o -lprotobuf-c -lsqlite3 -o server
 	CC $(FLAGS) ircclient.c commonutil.o clienthandler.o clientutil.o log.o aes256.o payload.o base64.o sha256.o -lprotobuf-c -o client
 
 commonutil.o : utilities/common/commonutil.c include/commonutil.h log.o
@@ -39,6 +39,9 @@ sha256.o: utilities/crypto/sha256.c include/sha256.h
 
 payload.o: protobufs/payload.pb-c.c protobufs/payload.pb-c.h
 	CC -c $(FLAGS) protobufs/payload.pb-c.c -o payload.o
+
+auth.o: utilities/auth/auth.c include/auth.h
+	CC -c $(FLAGS) utilities/auth/auth.c
 
 clean: 
 	rm -rf logs

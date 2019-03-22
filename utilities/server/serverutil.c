@@ -10,6 +10,7 @@
 #include"../../include/serverutil.h"
 #include"../../include/log.h"
 #include "../../include/commonutil.h"
+#include "../../include/auth.h"
 
 void terminateServer()
 {
@@ -26,6 +27,7 @@ void terminateServer()
         }
         
         close(serverfd);
+        close_db();
         fclose(serverlog);
         exit(1);
 }
@@ -63,6 +65,7 @@ void initializeIRCServer()
         }
 
         initializeCommonUtils();
+        initialize_db();
 
         serverlog = fopen(SERVER_LOGFILE_PATH, "w+");
      
