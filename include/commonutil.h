@@ -116,6 +116,7 @@ typedef struct {
 
 static FILE *urandom;
 
+void printDashes();
 int createSocket();
 char *createSessionId();
 uint8_t *createRandomKey();

@@ -27,37 +27,21 @@ void close_db()
       log_info("[DB CLOSED]");
 }
 
-int _db_auth_callback(void* c, int argc, char** argv, char** s)
+int _db_auth_callback(void* m, int argc, char** argv, char** s)
 {
       int i;
-      Connection *conn = (Connection *) c;
-      char *id = conn->payload->data->userconfig->id;
-      char *hash = conn->payload->data->userconfig->password;
-
-      IRCMessage *msg = (IRCMessage *) calloc(1, sizeof(IRCMessage));
-      ircmessage__init(msg);
-      msg->authstatus = DB_AUTH_FAILED;
-
-      for(i=0; i<argc; i++)
-      {
-            log_debug("%s", argv[i]);
-      }
+      IRCMessage *msg = (IRCMessage *) m;
+      char *id = msg->userconfig->id;
+      char *hash = msg->userconfig->password;
       
-
       if(argc == 2 && strcmp(id, argv[0]) == 0 && strcmp(hash, argv[1]) == 0)
       {
             msg->authstatus = DB_AUTH_SUCCESS;
-            log_debug("[DB LOGIN AUTH SUCCESS]");
       }
       else 
       {
             msg->authstatus = DB_AUTH_FAILED;
-            log_debug("[DB LOGIN AUTH FAILED]");
       }
-
-      conn->stage = MESSAGE_TYPE__auth;
-      wrapConnection(c, msg);
-      conn->writable = WRITABLE;
 
       return 1;
 }
@@ -96,9 +80,30 @@ void db_loginUser(Connection *c, char *id, char *hash)
 
       sprintf(cmd, AUTH_SELECT, id, hash);
 
-      int res = sqlite3_exec(db, cmd, _db_auth_callback, c, &err);
+      UserConfig* userconf = (UserConfig *) calloc(1, sizeof(UserConfig));
+      user_config__init(userconf);
+      userconf->id = id;
+      userconf->password = hash;
 
-      log_debug("[RES][%d][%s]", res == SQLITE_OK, err);
+      IRCMessage *msg = (IRCMessage *) calloc(1, sizeof(IRCMessage));
+      ircmessage__init(msg);
+      msg->authstatus = DB_AUTH_FAILED;
+      msg->userconfig = userconf;
+
+      int res = sqlite3_exec(db, cmd, _db_auth_callback, msg , &err);
+
+      if(msg->authstatus == DB_AUTH_SUCCESS)
+      {
+            log_debug("[LOGIN AUTH SUCCESS][%s]", id);
+      }
+      else 
+      {
+            log_debug("[LOGIN AUTH FAILED][%s]", id);
+      }
+
+      c->stage = MESSAGE_TYPE__auth;
+      wrapConnection(c, msg);
+      c->writable = WRITABLE;
 }
 
 

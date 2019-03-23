@@ -24,6 +24,11 @@ void initializeCommonUtils()
         urandom = fopen(URANDOM_FILE, "rb");
 }
 
+void printDashes()
+{
+        printMessage("-----------------------------------------");
+}
+
 int GENERATE_RANDOM()
 {
         int r;

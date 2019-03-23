@@ -166,10 +166,10 @@ void signupUser()
 {
       UserConfig *signupconfig = (UserConfig *) calloc(1, sizeof(UserConfig));
       user_config__init(signupconfig);
-      printMessage("-----------------------------------------");
+      printDashes();
       signupconfig->id = prompt(">> SignUp UserID : ");
       signupconfig->password = sha256(prompt(">> SignUp Password : "));
-      printMessage("-----------------------------------------");
+      printDashes();
 
       IRCMessage *msg = (IRCMessage *) calloc(1, sizeof(IRCMessage));
       ircmessage__init(msg);
@@ -195,10 +195,10 @@ void getUserDetails()
       {    
             userconfig = (UserConfig *) calloc(1, sizeof(UserConfig));
             user_config__init(userconfig);
-            printMessage("-----------------------------------------");
+            printDashes();
             userconfig->id = prompt(">> Login UserID : ");
             userconfig->password = sha256(prompt(">> Login Password : "));
-            printMessage("-----------------------------------------");
+            printDashes();
       }
 
       IRCMessage *msg = (IRCMessage *) calloc(1, sizeof(IRCMessage));
@@ -266,7 +266,10 @@ void handle_io_client()
                               if(authstatus == DB_AUTH_SUCCESS)
                               {
                                      saveConfigFile(); 
+                                     printDashes();
+                                     printMessage("Authentication Successful !");
                                      printMessage("You are now logged in as %s. Your config file can be found in config/config.irc", userconfig->id);
+                                     printDashes();
                               }
                               else 
                               {
