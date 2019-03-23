@@ -81,6 +81,16 @@ typedef struct {
 ////////////////////////////
 
 
+/////// DB AUTH /////
+
+#define DB_AUTH_FAILED 21
+#define DB_AUTH_SUCCESS 22
+#define DB_SIGNUP_FAILED 18
+#define DB_SIGNUP_SUCCESS 23
+
+/////////////////////
+
+
 typedef struct {
     uint8_t *sharedkey;
     uint8_t *randomkey;

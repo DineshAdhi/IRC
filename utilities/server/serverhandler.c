@@ -95,8 +95,6 @@ void handle_io_server_handshake(Connection *c)
                                         log_debug("[%s][SHARED KEY VERIFICATION FAILED]", c->sid);
                                         deregisterClient(c);
                                 }
-                                
-                                //printKey((uint8_t *)c->payload->data->key, KEYLENGTH);
                         }
                         else 
                         {
@@ -183,18 +181,15 @@ void handle_io_server(int id, int cfd)
         {
                 case MESSAGE_TYPE__auth:
                 {
-                        log_info("[RECEIVED REQUEST FOR AUTH]");
-                        log_info("[USER ID : %s][PASS : %s]", msg->userconfig->id, msg->userconfig->password);
+                        log_info("[LOGIN AUTH CALL][USER ID : %s][PASS : %s]", msg->userconfig->id, msg->userconfig->password);
+                        db_loginUser(c, msg->userconfig->id, msg->userconfig->password);
                         break;
                 }
 
                 case MESSAGE_TYPE__signup:
                 {
-                        log_info("[RECIEVED SIGN UP CALL]");
                         log_info("[SIGN UP CALL][USER ID : %s][PASS : %s]", msg->userconfig->id, msg->userconfig->password);
-                        
-                        db_signupUser(msg->userconfig->id, msg->userconfig->password);
-
+                        db_signupUser(c, msg->userconfig->id, msg->userconfig->password);
                         break;
                 }
 

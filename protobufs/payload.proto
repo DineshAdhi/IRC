@@ -14,6 +14,7 @@ enum MessageType {
 
 message IRCMessage {
     string key = 1;
+    int32 authstatus = 2;
     UserConfig userconfig = 4;
 }
 

@@ -186,7 +186,7 @@ int readconnection(Connection *c, MessageType mtype)
 
         if(c->len == 0)
         {
-                log_info("[%s][CLIENT DISCONNECTED]", c->sid);
+                //log_info("[%s][CLIENT DISCONNECTED]", c->sid);
                 return FAILURE;
         }
 

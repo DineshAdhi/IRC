@@ -1,5 +1,5 @@
 CC = gcc
-FLAGS = -DSERVER_DEBUG=1 -DCLIENT_DEBUG=1
+FLAGS = -DSERVER_DEBUG=1 -DCLIENT_DEBUG=0
 
 default : main
 	mv client server bin/

@@ -166,8 +166,10 @@ void signupUser()
 {
       UserConfig *signupconfig = (UserConfig *) calloc(1, sizeof(UserConfig));
       user_config__init(signupconfig);
-      signupconfig->id = prompt(">> UserID : ");
-      signupconfig->password = sha256(prompt(">> Password : "));
+      printMessage("-----------------------------------------");
+      signupconfig->id = prompt(">> SignUp UserID : ");
+      signupconfig->password = sha256(prompt(">> SignUp Password : "));
+      printMessage("-----------------------------------------");
 
       IRCMessage *msg = (IRCMessage *) calloc(1, sizeof(IRCMessage));
       ircmessage__init(msg);
@@ -193,13 +195,11 @@ void getUserDetails()
       {    
             userconfig = (UserConfig *) calloc(1, sizeof(UserConfig));
             user_config__init(userconfig);
-            userconfig->id = prompt(">> UserID : ");
-            userconfig->password = sha256(prompt(">> Password : "));
-            saveConfigFile();
+            printMessage("-----------------------------------------");
+            userconfig->id = prompt(">> Login UserID : ");
+            userconfig->password = sha256(prompt(">> Login Password : "));
+            printMessage("-----------------------------------------");
       }
-
-      log_info("[Userid - %s][Pass - %s]", userconfig->id, userconfig->password);
-      printMessage("You are now logged in as %s. Your config file can be found in config/config.irc", userconfig->id);
 
       IRCMessage *msg = (IRCMessage *) calloc(1, sizeof(IRCMessage));
       ircmessage__init(msg);
@@ -209,7 +209,7 @@ void getUserDetails()
 
       if(writeconnection(serverconn) == SUCCESS)
       {
-            log_info("[SENT MESSAGE FOR AUTHENTICATION]");   
+                  log_info("[SENT FOR AUTH][Userid - %s][Pass - %s]", userconfig->id, userconfig->password);   
       }
       else 
       {
@@ -257,12 +257,45 @@ void handle_io_client()
 
                   case MESSAGE_TYPE__auth:
                   {
+                        if(readconnection(serverconn, MESSAGE_TYPE__auth) == SUCCESS)
+                        {
+                              int authstatus = serverconn->payload->data->authstatus;
+
+                              log_debug("[LOGIN CALL RESPONSE RECEIVED][%d]", authstatus);
+
+                              if(authstatus == DB_AUTH_SUCCESS)
+                              {
+                                     saveConfigFile(); 
+                                     printMessage("You are now logged in as %s. Your config file can be found in config/config.irc", userconfig->id);
+                              }
+                              else 
+                              {
+                                    printMessage("Authentication Failed. Try again");
+                                    getUserDetails();
+                              }
+                        }
                         
                         break;
                   }
 
                   case MESSAGE_TYPE__signup:
                   {
+                        if(readconnection(serverconn, MESSAGE_TYPE__signup) == SUCCESS)
+                        {
+                              log_debug("[SIGN UP RESPONSE RECEIVED][%d]", serverconn->payload->data->authstatus);
+
+                              if(serverconn->payload->data->authstatus == DB_SIGNUP_SUCCESS)
+                              {
+                                    printMessage("[Sign up sucess][Please login now]");
+                                    getUserDetails();
+                              }
+                              else 
+                              {
+                                    printMessage("[User Id you entered already exists][Please try again]");
+                                    signupUser();
+                              }
+                        }
+
                         break;
                   }
                   

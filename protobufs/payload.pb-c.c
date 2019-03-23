@@ -142,7 +142,7 @@ void   user_config__free_unpacked
   assert(message->base.descriptor == &user_config__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-static const ProtobufCFieldDescriptor ircmessage__field_descriptors[2] =
+static const ProtobufCFieldDescriptor ircmessage__field_descriptors[3] =
 {
   {
     "key",
@@ -153,6 +153,18 @@ static const ProtobufCFieldDescriptor ircmessage__field_descriptors[2] =
     offsetof(IRCMessage, key),
     NULL,
     &protobuf_c_empty_string,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "authstatus",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(IRCMessage, authstatus),
+    NULL,
+    NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
@@ -170,14 +182,15 @@ static const ProtobufCFieldDescriptor ircmessage__field_descriptors[2] =
   },
 };
 static const unsigned ircmessage__field_indices_by_name[] = {
+  1,   /* field[1] = authstatus */
   0,   /* field[0] = key */
-  1,   /* field[1] = userconfig */
+  2,   /* field[2] = userconfig */
 };
 static const ProtobufCIntRange ircmessage__number_ranges[2 + 1] =
 {
   { 1, 0 },
-  { 4, 1 },
-  { 0, 2 }
+  { 4, 2 },
+  { 0, 3 }
 };
 const ProtobufCMessageDescriptor ircmessage__descriptor =
 {
@@ -187,7 +200,7 @@ const ProtobufCMessageDescriptor ircmessage__descriptor =
   "IRCMessage",
   "",
   sizeof(IRCMessage),
-  2,
+  3,
   ircmessage__field_descriptors,
   ircmessage__field_indices_by_name,
   2,  ircmessage__number_ranges,
